@@ -29,7 +29,6 @@
 	
 	<properties>
 		<java.version>25</java.version>
-	    <flyway.version>11.19.0</flyway.version>
 	</properties>
 
 	<dependencies>
@@ -54,19 +53,6 @@
 		<dependency>
 		 	<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-
-		<dependency>
-        	<groupId>org.flywaydb</groupId>
-        	<artifactId>flyway-core</artifactId>
-        	<version>${flyway.version}</version>
-    	</dependency>
-
-
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-database-postgresql</artifactId>
-			<version>${flyway.version}</version>
 		</dependency>
 
 		<dependency>
