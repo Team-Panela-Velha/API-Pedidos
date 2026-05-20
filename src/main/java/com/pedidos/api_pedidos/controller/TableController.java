@@ -30,7 +30,7 @@ public class TableController {
         return service.update(id, request);
     }
 
-    @GetMapping        // TODO trocar para paginacao
+    @GetMapping
     public List<TableResponse> getAll() {     
         return service.getAll();
     }
