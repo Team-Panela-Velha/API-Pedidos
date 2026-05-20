@@ -1,11 +1,10 @@
 package com.pedidos.api_pedidos.domain.entity;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 
 @Entity
-@Table(name = "extra")
-public class ExtraEntity {
+@Table(name = "category")
+public class CategoryEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,14 +13,14 @@ public class ExtraEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    @Column(columnDefinition = "text")
+    private String description;
 
-    public ExtraEntity() {}
+    public CategoryEntity() {}
 
-    public ExtraEntity(String name, BigDecimal price) {
+    public CategoryEntity(String name, String description) {
         this.name = name;
-        this.price = price;
+        this.description = description;
     }
 
     public Long getId() { return id; }
@@ -30,6 +29,6 @@ public class ExtraEntity {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

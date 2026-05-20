@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "extra")
-public class ExtraEntity {
+@Table(name = "product")
+public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,11 +17,20 @@ public class ExtraEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    public ExtraEntity() {}
+    @Column(columnDefinition = "text")
+    private String description;
 
-    public ExtraEntity(String name, BigDecimal price) {
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private CategoryEntity category;
+
+    public ProductEntity() {}
+
+    public ProductEntity(String name, BigDecimal price, String description, CategoryEntity category) {
         this.name = name;
         this.price = price;
+        this.description = description;
+        this.category = category;
     }
 
     public Long getId() { return id; }
@@ -32,4 +41,10 @@ public class ExtraEntity {
 
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public CategoryEntity getCategory() { return category; }
+    public void setCategory(CategoryEntity category) { this.category = category; }
 }

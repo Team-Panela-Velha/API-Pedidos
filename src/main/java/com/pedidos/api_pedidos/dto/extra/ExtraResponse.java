@@ -1,28 +1,20 @@
 package com.pedidos.api_pedidos.dto.extra;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 public class ExtraResponse {
-    private UUID extraId;
+
+    private Long id;
     private String name;
     private BigDecimal price;
 
-    public ExtraResponse(UUID extraId, String name, BigDecimal price) {
-        this.extraId = extraId;
+    public ExtraResponse(Long id, String name, BigDecimal price) {
+        this.id = id;
         this.name = name;
         this.price = price;
     }
 
-    public UUID getExtraId() {
-        return extraId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public BigDecimal getPrice() { return price; }
 }
