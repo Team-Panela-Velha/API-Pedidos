@@ -20,16 +20,20 @@ public class ProductEntity {
     @Column(columnDefinition = "text")
     private String description;
 
+    @Column(nullable = true)
+    private String image;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private CategoryEntity category;
 
     public ProductEntity() {}
 
-    public ProductEntity(String name, BigDecimal price, String description, CategoryEntity category) {
+    public ProductEntity(String name, BigDecimal price, String description, String image, CategoryEntity category) {
         this.name = name;
         this.price = price;
         this.description = description;
+        this.image = image;
         this.category = category;
     }
 
@@ -44,6 +48,9 @@ public class ProductEntity {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getImage() {return image;}
+    public void setImage(String image) {this.image = image;}
 
     public CategoryEntity getCategory() { return category; }
     public void setCategory(CategoryEntity category) { this.category = category; }

@@ -28,7 +28,7 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
         ProductEntity entity = new ProductEntity(
-                request.getName(), request.getPrice(), request.getDescription(), category);
+                request.getName(), request.getPrice(), request.getDescription(), request.getImage(), category);
         entity = repository.save(entity);
 
         return toResponse(entity);
@@ -70,6 +70,6 @@ public class ProductService {
     private ProductResponse toResponse(ProductEntity entity) {
         Long categoryId = entity.getCategory() != null ? entity.getCategory().getId() : null;
         return new ProductResponse(
-                entity.getId(), entity.getName(), entity.getPrice(), entity.getDescription(), categoryId);
+                entity.getId(), entity.getName(), entity.getPrice(), entity.getDescription(), entity.getImage(), categoryId);
     }
 }
