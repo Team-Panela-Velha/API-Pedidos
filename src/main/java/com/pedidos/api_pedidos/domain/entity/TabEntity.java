@@ -14,6 +14,9 @@ public class TabEntity {
     @Column(name = "total_value", nullable = false)
     private BigDecimal totalValue;
 
+    @Column(nullable = false)
+    private Boolean closed = false;
+
     @ManyToOne
     @JoinColumn(name = "table_id")
     private TableEntity table;
@@ -23,6 +26,7 @@ public class TabEntity {
     public TabEntity(BigDecimal totalValue, TableEntity table) {
         this.totalValue = totalValue;
         this.table = table;
+        this.closed = false;
     }
 
     public Long getId() { return id; }
@@ -30,6 +34,9 @@ public class TabEntity {
 
     public BigDecimal getTotalValue() { return totalValue; }
     public void setTotalValue(BigDecimal totalValue) { this.totalValue = totalValue; }
+
+    public Boolean getClosed() { return closed; }
+    public void setClosed(Boolean closed) { this.closed = closed; }
 
     public TableEntity getTable() { return table; }
     public void setTable(TableEntity table) { this.table = table; }

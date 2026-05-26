@@ -4,11 +4,13 @@ import org.springframework.stereotype.Service;
 
 import com.pedidos.api_pedidos.domain.entity.TabEntity;
 import com.pedidos.api_pedidos.domain.entity.TableEntity;
+import com.pedidos.api_pedidos.dto.tab.StartTabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabResponse;
 import com.pedidos.api_pedidos.repository.TabRepository;
 import com.pedidos.api_pedidos.repository.TableRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,45 @@ public class TabService {
         this.repository = repository;
         this.tableRepository = tableRepository;
     }
+
+    // ── Endpoints solicitados ─────────────────────────────────────────────────
+
+    /**
+     * Cria uma nova comanda a partir do código da mesa.
+     * Lança exceção se já existir uma comanda aberta para a mesma mesa.
+     */
+    public TabResponse startTab(StartTabRequest request) {
+        TableEntity table = tableRepository.findByCode(request.getTableCode())
+                .orElseThrow(() -> new RuntimeException("Table not found: " + request.getTableCode()));
+
+        repository.findByTableIdAndClosedFalse(table.getId()).ifPresent(existing -> {
+            throw new RuntimeException("Table " + request.getTableCode() + " already has an open tab (id=" + existing.getId() + ")");
+        });
+
+        TabEntity entity = new TabEntity(BigDecimal.ZERO, table);
+        entity = repository.save(entity);
+
+        return toResponse(entity);
+    }
+
+    /**
+     * Encerra a comanda. Após fechada, não pode receber mais pedidos.
+     */
+    public TabResponse closeTab(Long id) {
+        TabEntity entity = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tab not found"));
+
+        if (Boolean.TRUE.equals(entity.getClosed())) {
+            throw new RuntimeException("Tab is already closed");
+        }
+
+        entity.setClosed(true);
+        entity = repository.save(entity);
+
+        return toResponse(entity);
+    }
+
+    // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     public TabResponse create(TabRequest request) {
         TableEntity table = tableRepository.findById(request.getTableId())
@@ -64,8 +105,11 @@ public class TabService {
         repository.deleteById(id);
     }
 
+    // ── Helper ────────────────────────────────────────────────────────────────
+
     private TabResponse toResponse(TabEntity entity) {
         Long tableId = entity.getTable() != null ? entity.getTable().getId() : null;
-        return new TabResponse(entity.getId(), entity.getTotalValue(), tableId);
+        String tableCode = entity.getTable() != null ? entity.getTable().getCode() : null;
+        return new TabResponse(entity.getId(), entity.getTotalValue(), entity.getClosed(), tableId, tableCode);
     }
 }

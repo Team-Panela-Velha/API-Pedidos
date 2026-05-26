@@ -2,6 +2,7 @@ package com.pedidos.api_pedidos.controller;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
 import com.pedidos.api_pedidos.dto.product_extra.ProductExtraRequest;
 import com.pedidos.api_pedidos.dto.product_extra.ProductExtraResponse;
 import com.pedidos.api_pedidos.service.ProductExtraService;
@@ -18,6 +19,15 @@ public class ProductExtraController {
         this.service = service;
     }
 
+    // ── Endpoints solicitados ─────────────────────────────────────────────────
+
+    @GetMapping("/by-product/{productId}/extras")
+    public List<ExtraResponse> getProductExtras(@PathVariable Long productId) {
+        return service.getProductExtras(productId);
+    }
+
+    // ── CRUD padrão ───────────────────────────────────────────────────────────
+
     @PostMapping
     public ProductExtraResponse create(@RequestBody ProductExtraRequest request) {
         return service.create(request);
@@ -31,11 +41,6 @@ public class ProductExtraController {
     @GetMapping("/{id}")
     public ProductExtraResponse getById(@PathVariable Long id) {
         return service.getById(id);
-    }
-
-    @GetMapping("/by-product/{productId}")
-    public List<ProductExtraResponse> getByProductId(@PathVariable Long productId) {
-        return service.getByProductId(productId);
     }
 
     @DeleteMapping("/{id}")

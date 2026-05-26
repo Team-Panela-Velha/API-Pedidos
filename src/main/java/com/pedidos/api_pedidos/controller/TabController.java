@@ -2,6 +2,7 @@ package com.pedidos.api_pedidos.controller;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.pedidos.api_pedidos.dto.tab.StartTabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabResponse;
 import com.pedidos.api_pedidos.service.TabService;
@@ -17,6 +18,20 @@ public class TabController {
     public TabController(TabService service) {
         this.service = service;
     }
+
+    // ── Endpoints solicitados ─────────────────────────────────────────────────
+
+    @PostMapping("/start")
+    public TabResponse startTab(@RequestBody StartTabRequest request) {
+        return service.startTab(request);
+    }
+
+    @PatchMapping("/{id}/close")
+    public TabResponse closeTab(@PathVariable Long id) {
+        return service.closeTab(id);
+    }
+
+    // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     @PostMapping
     public TabResponse create(@RequestBody TabRequest request) {
