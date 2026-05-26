@@ -20,7 +20,7 @@ public class ProductEntity {
     @Column(columnDefinition = "text")
     private String description;
 
-    @Column(nullable = true)
+    @Column
     private String image;
 
     @ManyToOne
@@ -49,8 +49,8 @@ public class ProductEntity {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getImage() {return image;}
-    public void setImage(String image) {this.image = image;}
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 
     public CategoryEntity getCategory() { return category; }
     public void setCategory(CategoryEntity category) { this.category = category; }

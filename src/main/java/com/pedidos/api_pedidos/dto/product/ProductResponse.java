@@ -24,6 +24,6 @@ public class ProductResponse {
     public String getName() { return name; }
     public BigDecimal getPrice() { return price; }
     public String getDescription() { return description; }
-    public String getImage() {return image;}
+    public String getImage() { return image; }
     public Long getCategoryId() { return categoryId; }
 }

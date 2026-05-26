@@ -18,6 +18,15 @@ public class OrderController {
         this.service = service;
     }
 
+    // ── Endpoints solicitados ─────────────────────────────────────────────────
+
+    @GetMapping("/by-tab/{tabId}")
+    public List<OrderResponse> getTabOrders(@PathVariable Long tabId) {
+        return service.getTabOrders(tabId);
+    }
+
+    // ── CRUD padrão ───────────────────────────────────────────────────────────
+
     @PostMapping
     public OrderResponse create(@RequestBody OrderRequest request) {
         return service.create(request);

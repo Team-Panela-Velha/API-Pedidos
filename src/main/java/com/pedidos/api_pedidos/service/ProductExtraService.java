@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.pedidos.api_pedidos.domain.entity.ExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.ProductEntity;
 import com.pedidos.api_pedidos.domain.entity.ProductExtraEntity;
+import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
 import com.pedidos.api_pedidos.dto.product_extra.ProductExtraRequest;
 import com.pedidos.api_pedidos.dto.product_extra.ProductExtraResponse;
 import com.pedidos.api_pedidos.repository.ExtraRepository;
@@ -28,6 +29,24 @@ public class ProductExtraService {
         this.productRepository = productRepository;
         this.extraRepository = extraRepository;
     }
+
+    /**
+     * Retorna todos os extras disponíveis para um produto específico.
+     */
+    public List<ExtraResponse> getProductExtras(Long productId) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        return repository.findByProductId(productId)
+                .stream()
+                .map(pe -> {
+                    ExtraEntity extra = pe.getExtra();
+                    return new ExtraResponse(extra.getId(), extra.getName(), extra.getPrice());
+                })
+                .collect(Collectors.toList());
+    }
+
+    // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     public ProductExtraResponse create(ProductExtraRequest request) {
         ProductEntity product = productRepository.findById(request.getProductId())
