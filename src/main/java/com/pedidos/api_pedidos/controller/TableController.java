@@ -40,6 +40,11 @@ public class TableController {
         return service.getById(id);
     }
 
+    @GetMapping("/code/{code}")
+    public TableResponse getByCode(@PathVariable String code) {
+        return service.getByCode(code);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);

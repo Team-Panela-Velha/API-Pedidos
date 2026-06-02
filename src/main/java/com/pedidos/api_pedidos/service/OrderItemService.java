@@ -41,7 +41,7 @@ public class OrderItemService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         OrderItemEntity entity = new OrderItemEntity(
-                product, order, request.getQuantity(), request.getObservation());
+                product, order, request.getQuantity(), request.getObservation(), product.getPrice());
         entity = repository.save(entity);
 
         return toResponse(entity);
@@ -60,6 +60,7 @@ public class OrderItemService {
         entity.setOrder(order);
         entity.setQuantity(request.getQuantity());
         entity.setObservation(request.getObservation());
+        entity.setUnitPriceSnapshot(product.getPrice());
         entity = repository.save(entity);
 
         return toResponse(entity);

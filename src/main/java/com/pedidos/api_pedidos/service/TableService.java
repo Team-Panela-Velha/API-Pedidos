@@ -51,6 +51,13 @@ public class TableService {
         return new TableResponse(entity.getId(), entity.getCode());
     }
 
+    public TableResponse getByCode(String code) {
+        TableEntity entity = repository.findByCode(code)
+                .orElseThrow(() -> new RuntimeException("Table not found"));
+
+        return new TableResponse(entity.getId(), entity.getCode());
+    }
+
     public void delete(Long id) {
         repository.deleteById(id);
     }
