@@ -1,6 +1,7 @@
 package com.pedidos.api_pedidos.domain.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_item")
@@ -24,13 +25,17 @@ public class OrderItemEntity {
     @Column(columnDefinition = "text")
     private String observation;
 
+    @Column(name = "unit_price_snapshot", nullable = false, precision = 10, scale = 2)
+    private BigDecimal unitPriceSnapshot;
+
     public OrderItemEntity() {}
 
-    public OrderItemEntity(ProductEntity product, OrderEntity order, Short quantity, String observation) {
+    public OrderItemEntity(ProductEntity product, OrderEntity order, Short quantity, String observation, BigDecimal unitPriceSnapshot) {
         this.product = product;
         this.order = order;
         this.quantity = quantity;
         this.observation = observation;
+        this.unitPriceSnapshot = unitPriceSnapshot;
     }
 
     public Long getId() { return id; }
@@ -47,4 +52,7 @@ public class OrderItemEntity {
 
     public String getObservation() { return observation; }
     public void setObservation(String observation) { this.observation = observation; }
+
+    public BigDecimal getUnitPriceSnapshot() { return unitPriceSnapshot; }
+    public void setUnitPriceSnapshot(BigDecimal unitPriceSnapshot) { this.unitPriceSnapshot = unitPriceSnapshot; }
 }
