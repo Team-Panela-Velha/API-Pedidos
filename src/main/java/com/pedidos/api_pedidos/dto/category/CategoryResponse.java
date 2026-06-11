@@ -1,21 +1,18 @@
 package com.pedidos.api_pedidos.dto.category;
 
-import java.util.UUID;
-
 public class CategoryResponse {
-    private UUID id;
-    private String code;
 
-    public CategoryResponse(UUID id, String code) {
+    private Long id;
+    private String name;
+    private String description;
+
+    public CategoryResponse(Long id, String name, String description) {
         this.id = id;
-        this.code = code;
+        this.name = name;
+        this.description = description;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getCode() {
-        return code;
-    }
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
 }

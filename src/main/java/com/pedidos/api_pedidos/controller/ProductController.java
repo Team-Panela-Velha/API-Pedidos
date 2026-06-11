@@ -1,5 +1,15 @@
 package com.pedidos.api_pedidos.controller;
 
+import org.springframework.web.bind.annotation.*;
+
+import com.pedidos.api_pedidos.dto.product.ProductRequest;
+import com.pedidos.api_pedidos.dto.product.ProductResponse;
+import com.pedidos.api_pedidos.service.ProductService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/products")
 public class ProductController {
     private final ProductService service;
 
@@ -13,15 +23,12 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ProductResponse update(
-            @PathVariable Long id,
-            @RequestBody ProductRequest request
-    ) {
+    public ProductResponse update(@PathVariable Long id, @RequestBody ProductRequest request) {
         return service.update(id, request);
     }
 
-    @GetMapping        // TODO trocar para paginacao
-    public List<ProductResponse> getAll() {     
+    @GetMapping
+    public List<ProductResponse> getAll() {
         return service.getAll();
     }
 

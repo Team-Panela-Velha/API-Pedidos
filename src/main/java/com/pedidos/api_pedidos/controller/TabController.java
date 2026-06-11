@@ -2,48 +2,54 @@ package com.pedidos.api_pedidos.controller;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.pedidos.api_pedidos.dto.order.OrderRequest;
-import com.pedidos.api_pedidos.dto.order.OrderResponse;
-import com.pedidos.api_pedidos.service.OrderService;
+import com.pedidos.api_pedidos.dto.tab.StartTabRequest;
+import com.pedidos.api_pedidos.dto.tab.TabRequest;
+import com.pedidos.api_pedidos.dto.tab.TabResponse;
+import com.pedidos.api_pedidos.service.TabService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/orders")
-public class OrderController {
+@RequestMapping("/tabs")
+public class TabController {
 
-    private final OrderService service;
+    private final TabService service;
 
-    public OrderController(OrderService service) {
+    public TabController(TabService service) {
         this.service = service;
     }
 
     // ── Endpoints solicitados ─────────────────────────────────────────────────
 
-    @GetMapping("/by-tab/{tabId}")
-    public List<OrderResponse> getTabOrders(@PathVariable Long tabId) {
-        return service.getTabOrders(tabId);
+    @PostMapping("/start")
+    public TabResponse startTab(@RequestBody StartTabRequest request) {
+        return service.startTab(request);
+    }
+
+    @PatchMapping("/{id}/close")
+    public TabResponse closeTab(@PathVariable Long id) {
+        return service.closeTab(id);
     }
 
     // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     @PostMapping
-    public OrderResponse create(@RequestBody OrderRequest request) {
+    public TabResponse create(@RequestBody TabRequest request) {
         return service.create(request);
     }
 
     @PutMapping("/{id}")
-    public OrderResponse update(@PathVariable Long id, @RequestBody OrderRequest request) {
+    public TabResponse update(@PathVariable Long id, @RequestBody TabRequest request) {
         return service.update(id, request);
     }
 
     @GetMapping
-    public List<OrderResponse> getAll() {
+    public List<TabResponse> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public OrderResponse getById(@PathVariable Long id) {
+    public TabResponse getById(@PathVariable Long id) {
         return service.getById(id);
     }
 

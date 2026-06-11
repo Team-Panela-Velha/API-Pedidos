@@ -2,48 +2,44 @@ package com.pedidos.api_pedidos.controller;
 
 import org.springframework.web.bind.annotation.*;
 
-import com.pedidos.api_pedidos.dto.order.OrderRequest;
-import com.pedidos.api_pedidos.dto.order.OrderResponse;
-import com.pedidos.api_pedidos.service.OrderService;
+import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
+import com.pedidos.api_pedidos.dto.product_extra.ProductExtraRequest;
+import com.pedidos.api_pedidos.dto.product_extra.ProductExtraResponse;
+import com.pedidos.api_pedidos.service.ProductExtraService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/orders")
-public class OrderController {
+@RequestMapping("/product-extras")
+public class ProductExtraController {
 
-    private final OrderService service;
+    private final ProductExtraService service;
 
-    public OrderController(OrderService service) {
+    public ProductExtraController(ProductExtraService service) {
         this.service = service;
     }
 
     // ── Endpoints solicitados ─────────────────────────────────────────────────
 
-    @GetMapping("/by-tab/{tabId}")
-    public List<OrderResponse> getTabOrders(@PathVariable Long tabId) {
-        return service.getTabOrders(tabId);
+    @GetMapping("/by-product/{productId}/extras")
+    public List<ExtraResponse> getProductExtras(@PathVariable Long productId) {
+        return service.getProductExtras(productId);
     }
 
     // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     @PostMapping
-    public OrderResponse create(@RequestBody OrderRequest request) {
+    public ProductExtraResponse create(@RequestBody ProductExtraRequest request) {
         return service.create(request);
     }
 
-    @PutMapping("/{id}")
-    public OrderResponse update(@PathVariable Long id, @RequestBody OrderRequest request) {
-        return service.update(id, request);
-    }
-
     @GetMapping
-    public List<OrderResponse> getAll() {
+    public List<ProductExtraResponse> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public OrderResponse getById(@PathVariable Long id) {
+    public ProductExtraResponse getById(@PathVariable Long id) {
         return service.getById(id);
     }
 

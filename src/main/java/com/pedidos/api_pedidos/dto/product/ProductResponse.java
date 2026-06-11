@@ -1,21 +1,29 @@
 package com.pedidos.api_pedidos.dto.product;
 
-import java.util.UUID;
+import java.math.BigDecimal;
 
 public class ProductResponse {
-    private UUID id;
-    private String code;
 
-    public ProductResponse(UUID id, String code) {
+    private Long id;
+    private String name;
+    private BigDecimal price;
+    private String description;
+    private String image;
+    private Long categoryId;
+
+    public ProductResponse(Long id, String name, BigDecimal price, String description, String image, Long categoryId) {
         this.id = id;
-        this.code = code;
+        this.name = name;
+        this.price = price;
+        this.description = description;
+        this.image = image;
+        this.categoryId = categoryId;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getCode() {
-        return code;
-    }
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public BigDecimal getPrice() { return price; }
+    public String getDescription() { return description; }
+    public String getImage() { return image; }
+    public Long getCategoryId() { return categoryId; }
 }

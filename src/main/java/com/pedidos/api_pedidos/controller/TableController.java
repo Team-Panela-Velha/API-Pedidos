@@ -30,7 +30,7 @@ public class TableController {
         return service.update(id, request);
     }
 
-    @GetMapping        // TODO trocar para paginacao
+    @GetMapping
     public List<TableResponse> getAll() {     
         return service.getAll();
     }
@@ -38,6 +38,11 @@ public class TableController {
     @GetMapping("/{id}")
     public TableResponse getById(@PathVariable Long id) {
         return service.getById(id);
+    }
+
+    @GetMapping("/code/{code}")
+    public TableResponse getByCode(@PathVariable String code) {
+        return service.getByCode(code);
     }
 
     @DeleteMapping("/{id}")
