@@ -28,7 +28,7 @@
 	</scm>
 	
 	<properties>
-		<java.version>25</java.version>
+		<java.version>17</java.version>
 	</properties>
 
 	<dependencies>
@@ -60,6 +60,12 @@
 			<artifactId>postgresql</artifactId>
 		</dependency>
 			
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,12 +1,13 @@
 package com.pedidos.api_pedidos.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.*;
 
 import com.pedidos.api_pedidos.dto.category.CategoryRequest;
 import com.pedidos.api_pedidos.dto.category.CategoryResponse;
 import com.pedidos.api_pedidos.service.CategoryService;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/categories")

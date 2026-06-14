@@ -1,17 +1,16 @@
 package com.pedidos.api_pedidos.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.*;
 
 import com.pedidos.api_pedidos.dto.product.ProductRequest;
 import com.pedidos.api_pedidos.dto.product.ProductResponse;
 import com.pedidos.api_pedidos.service.ProductService;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/products")
 public class ProductController {
-
     private final ProductService service;
 
     public ProductController(ProductService service) {
@@ -29,8 +28,9 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> getAll() {
-        return service.getAll();
+    public List<ProductResponse> getAll(@RequestParam(value = "available", required = false) Boolean available,
+                                        @RequestParam(value = "restrictions", required = false) List<com.pedidos.api_pedidos.domain.enums.DietaryRestriction> restrictions) {
+        return service.getAll(available, restrictions);
     }
 
     @GetMapping("/{id}")
