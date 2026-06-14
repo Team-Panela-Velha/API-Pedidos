@@ -1,8 +1,10 @@
 package com.pedidos.api_pedidos.dto.order_item;
 
-import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
-
+import java.math.BigDecimal;
 import java.util.List;
+
+import com.pedidos.api_pedidos.domain.enums.OrderStatus;
+import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
 
 public class OrderItemResponse {
 
@@ -12,16 +14,21 @@ public class OrderItemResponse {
     private Long orderId;
     private Short quantity;
     private String observation;
+    private BigDecimal unitPriceSnapshot;
+    private OrderStatus status;
     private List<ExtraResponse> extras;
 
     public OrderItemResponse(Long id, Long productId, String productName, Long orderId,
-                             Short quantity, String observation, List<ExtraResponse> extras) {
+                             Short quantity, String observation, BigDecimal unitPriceSnapshot, 
+                             OrderStatus status, List<ExtraResponse> extras) {
         this.id = id;
         this.productId = productId;
         this.productName = productName;
         this.orderId = orderId;
         this.quantity = quantity;
         this.observation = observation;
+        this.unitPriceSnapshot = unitPriceSnapshot;
+        this.status = status;
         this.extras = extras;
     }
 
@@ -31,5 +38,7 @@ public class OrderItemResponse {
     public Long getOrderId() { return orderId; }
     public Short getQuantity() { return quantity; }
     public String getObservation() { return observation; }
+    public BigDecimal getUnitPriceSnapshot() { return unitPriceSnapshot; }
+    public OrderStatus getStatus() { return status; }
     public List<ExtraResponse> getExtras() { return extras; }
 }
