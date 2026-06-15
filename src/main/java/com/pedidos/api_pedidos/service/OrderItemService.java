@@ -105,6 +105,7 @@ public class OrderItemService {
 
         return new OrderItemResponse(
                 entity.getId(), productId, productName, orderId,
-                entity.getQuantity(), entity.getObservation(), extras);
+                entity.getQuantity(), entity.getObservation(),
+                entity.getUnitPriceSnapshot(), entity.getStatus(), extras);
     }
 }

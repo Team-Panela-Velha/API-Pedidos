@@ -1,28 +1,40 @@
 package com.pedidos.api_pedidos.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
+import com.pedidos.api_pedidos.domain.entity.OrderEntity;
 import com.pedidos.api_pedidos.domain.entity.TabEntity;
 import com.pedidos.api_pedidos.domain.entity.TableEntity;
 import com.pedidos.api_pedidos.dto.tab.StartTabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabResponse;
+import com.pedidos.api_pedidos.repository.ItemExtraRepository;
+import com.pedidos.api_pedidos.repository.OrderItemRepository;
+import com.pedidos.api_pedidos.repository.OrderRepository;
 import com.pedidos.api_pedidos.repository.TabRepository;
 import com.pedidos.api_pedidos.repository.TableRepository;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TabService {
 
     private final TabRepository repository;
     private final TableRepository tableRepository;
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final ItemExtraRepository itemExtraRepository;
 
-    public TabService(TabRepository repository, TableRepository tableRepository) {
+    public TabService(TabRepository repository, TableRepository tableRepository,
+                      OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+                      ItemExtraRepository itemExtraRepository) {
         this.repository = repository;
         this.tableRepository = tableRepository;
+        this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.itemExtraRepository = itemExtraRepository;
     }
 
     // ── Endpoints solicitados ─────────────────────────────────────────────────
@@ -103,6 +115,37 @@ public class TabService {
 
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    /**
+     * Recalcula o valor total da comanda baseado em todos os itens e seus extras.
+     */
+    public void recalculateTotalValue(Long tabId) {
+        TabEntity tab = repository.findById(tabId)
+                .orElseThrow(() -> new RuntimeException("Tab not found"));
+
+        List<OrderEntity> orders = orderRepository.findByTabId(tabId);
+        BigDecimal totalValue = BigDecimal.ZERO;
+
+        for (OrderEntity order : orders) {
+            List<com.pedidos.api_pedidos.domain.entity.OrderItemEntity> items = orderItemRepository.findByOrderId(order.getId());
+            
+            for (com.pedidos.api_pedidos.domain.entity.OrderItemEntity item : items) {
+                // Adiciona (quantidade * preço unitário do snapshot)
+                BigDecimal itemTotal = item.getUnitPriceSnapshot().multiply(BigDecimal.valueOf(item.getQuantity()));
+                totalValue = totalValue.add(itemTotal);
+
+                // Adiciona os extras
+                List<com.pedidos.api_pedidos.domain.entity.ItemExtraEntity> extras = 
+                    itemExtraRepository.findByOrderItemId(item.getId());
+                for (com.pedidos.api_pedidos.domain.entity.ItemExtraEntity extra : extras) {
+                    totalValue = totalValue.add(extra.getExtra().getPrice());
+                }
+            }
+        }
+
+        tab.setTotalValue(totalValue);
+        repository.save(tab);
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

@@ -1,7 +1,19 @@
 package com.pedidos.api_pedidos.domain.entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "product")
@@ -26,6 +38,15 @@ public class ProductEntity {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private CategoryEntity category;
+
+        @Column(nullable = false)
+        private Boolean available = true;
+
+        @ManyToMany
+        @JoinTable(name = "product_extra",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "extra_id"))
+        private Set<com.pedidos.api_pedidos.domain.entity.ExtraEntity> extras = new HashSet<>();
 
     public ProductEntity() {}
 
@@ -54,4 +75,10 @@ public class ProductEntity {
 
     public CategoryEntity getCategory() { return category; }
     public void setCategory(CategoryEntity category) { this.category = category; }
+
+    public Boolean getAvailable() { return available; }
+    public void setAvailable(Boolean available) { this.available = available; }
+
+    public Set<com.pedidos.api_pedidos.domain.entity.ExtraEntity> getExtras() { return extras; }
+    public void setExtras(Set<com.pedidos.api_pedidos.domain.entity.ExtraEntity> extras) { this.extras = extras; }
 }
