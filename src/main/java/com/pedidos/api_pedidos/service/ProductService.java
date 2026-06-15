@@ -102,6 +102,42 @@ public class ProductService {
         return toResponseWithExtras(entity);
     }
 
+    /**
+     * Função nova 1 — Lista os produtos de uma categoria.
+     * 404 se a categoria não existir. Aceita o filtro opcional ?available=true.
+     */
+    public List<ProductResponse> getByCategory(Long categoryId, Boolean available) {
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
+        }
+
+        List<ProductEntity> products = repository.findByCategoryId(categoryId);
+
+        if (available != null) {
+            products = products.stream()
+                    .filter(p -> available.equals(p.getAvailable()))
+                    .collect(Collectors.toList());
+        }
+
+        return products.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Função nova 2 — Busca produtos por nome + descrição + nome da categoria.
+     * Termo vazio/ausente retorna lista vazia (evita payload grande sem intenção de busca).
+     */
+    public List<ProductResponse> search(String q) {
+        if (q == null || q.isBlank()) {
+            return List.of();
+        }
+        return repository.search(q.trim())
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     public void delete(Long id) {
         // Check if product is present in any order_item of an open tab
         List<com.pedidos.api_pedidos.domain.entity.OrderItemEntity> items = orderItemRepository.findByProductId(id);

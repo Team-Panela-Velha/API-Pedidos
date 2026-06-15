@@ -33,6 +33,19 @@ public class ProductController {
         return service.getAll(available, restrictions);
     }
 
+    // Função nova 1 — produtos por categoria
+    @GetMapping("/category/{categoryId}")
+    public List<ProductResponse> getByCategory(@PathVariable Long categoryId,
+                                               @RequestParam(value = "available", required = false) Boolean available) {
+        return service.getByCategory(categoryId, available);
+    }
+
+    // Função nova 2 — busca (search bar)
+    @GetMapping("/search")
+    public List<ProductResponse> search(@RequestParam(value = "q", required = false) String q) {
+        return service.search(q);
+    }
+
     @GetMapping("/{id}")
     public ProductResponse getById(@PathVariable Long id) {
         return service.getById(id);

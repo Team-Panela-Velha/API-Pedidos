@@ -3,6 +3,7 @@ package com.pedidos.api_pedidos.controller;
 import com.pedidos.api_pedidos.domain.entity.TableEntity;
 import com.pedidos.api_pedidos.dto.auth.TableAuthRequest;
 import com.pedidos.api_pedidos.dto.auth.TableAuthResponse;
+import com.pedidos.api_pedidos.dto.table.GenerateCodesResponse;
 import com.pedidos.api_pedidos.dto.table.TableRequest;
 import com.pedidos.api_pedidos.dto.table.TableResponse;
 import com.pedidos.api_pedidos.exception.UnauthorizedException;
@@ -69,6 +70,11 @@ public class TableController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Mesa removida", null));
+    }
+
+    @PostMapping("/{id}/generate-codes")
+    public ResponseEntity<ApiResponse<GenerateCodesResponse>> generateCodes(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok("Códigos gerados", service.generateCodes(id)));
     }
 
 

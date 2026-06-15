@@ -1,6 +1,7 @@
 package com.pedidos.api_pedidos.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import com.pedidos.api_pedidos.repository.ExtraRepository;
 import com.pedidos.api_pedidos.repository.ItemExtraRepository;
 import com.pedidos.api_pedidos.repository.OrderItemRepository;
 import com.pedidos.api_pedidos.repository.OrderRepository;
+import com.pedidos.api_pedidos.repository.ProductExtraRepository;
 import com.pedidos.api_pedidos.repository.ProductRepository;
 import com.pedidos.api_pedidos.repository.TabRepository;
 
@@ -37,6 +39,7 @@ public class OrderService {
     private final ItemExtraRepository itemExtraRepository;
     private final ProductRepository productRepository;
     private final ExtraRepository extraRepository;
+    private final ProductExtraRepository productExtraRepository;
     private final FcmService fcmService;
     private final TabService tabService;
 
@@ -46,6 +49,7 @@ public class OrderService {
                         ItemExtraRepository itemExtraRepository,
                         ProductRepository productRepository,
                         ExtraRepository extraRepository,
+                        ProductExtraRepository productExtraRepository,
                         FcmService fcmService,
                         TabService tabService) {
         this.repository = repository;
@@ -54,6 +58,7 @@ public class OrderService {
         this.itemExtraRepository = itemExtraRepository;
         this.productRepository = productRepository;
         this.extraRepository = extraRepository;
+        this.productExtraRepository = productExtraRepository;
         this.fcmService = fcmService;
         this.tabService = tabService;
     }
@@ -108,11 +113,23 @@ public class OrderService {
                 );
                 orderItem = orderItemRepository.save(orderItem);
 
-                // Adiciona extras
+                // Adiciona extras (Função nova 3 — validar que o adicional é permitido para o produto)
                 if (itemRequest.getExtraIds() != null && !itemRequest.getExtraIds().isEmpty()) {
+                    // Adicionais realmente disponíveis para este produto (tabela product_extra)
+                    Set<Long> allowedExtraIds = productExtraRepository.findByProductId(product.getId())
+                            .stream()
+                            .filter(pe -> pe.getExtra() != null)
+                            .map(pe -> pe.getExtra().getId())
+                            .collect(Collectors.toSet());
+
                     for (Long extraId : itemRequest.getExtraIds()) {
+                        if (!allowedExtraIds.contains(extraId)) {
+                            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                                    "Adicional " + extraId + " não está disponível para o produto " + product.getId());
+                        }
                         ExtraEntity extra = extraRepository.findById(extraId)
-                                .orElseThrow(() -> new RuntimeException("Extra not found: " + extraId));
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                                        "Adicional não encontrado: " + extraId));
                         ItemExtraEntity itemExtra = new ItemExtraEntity(orderItem, extra);
                         itemExtraRepository.save(itemExtra);
                     }

@@ -12,6 +12,8 @@ import com.pedidos.api_pedidos.domain.entity.TableEntity;
 import com.pedidos.api_pedidos.dto.tab.StartTabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabResponse;
+import com.pedidos.api_pedidos.exception.ConflictException;
+import com.pedidos.api_pedidos.exception.ResourceNotFoundException;
 import com.pedidos.api_pedidos.repository.ItemExtraRepository;
 import com.pedidos.api_pedidos.repository.OrderItemRepository;
 import com.pedidos.api_pedidos.repository.OrderRepository;
@@ -45,10 +47,10 @@ public class TabService {
      */
     public TabResponse startTab(StartTabRequest request) {
         TableEntity table = tableRepository.findByCode(request.getTableCode())
-                .orElseThrow(() -> new RuntimeException("Table not found: " + request.getTableCode()));
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + request.getTableCode()));
 
         repository.findByTableIdAndClosedFalse(table.getId()).ifPresent(existing -> {
-            throw new RuntimeException("Table " + request.getTableCode() + " already has an open tab (id=" + existing.getId() + ")");
+            throw new ConflictException("A mesa " + request.getTableCode() + " já possui uma comanda aberta (id=" + existing.getId() + ")");
         });
 
         TabEntity entity = new TabEntity(BigDecimal.ZERO, table);
@@ -62,10 +64,10 @@ public class TabService {
      */
     public TabResponse closeTab(Long id) {
         TabEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tab not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Comanda não encontrada: " + id));
 
         if (Boolean.TRUE.equals(entity.getClosed())) {
-            throw new RuntimeException("Tab is already closed");
+            throw new ConflictException("A comanda já está fechada");
         }
 
         entity.setClosed(true);
@@ -78,7 +80,7 @@ public class TabService {
 
     public TabResponse create(TabRequest request) {
         TableEntity table = tableRepository.findById(request.getTableId())
-                .orElseThrow(() -> new RuntimeException("Table not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + request.getTableId()));
 
         TabEntity entity = new TabEntity(request.getTotalValue(), table);
         entity = repository.save(entity);
@@ -88,10 +90,10 @@ public class TabService {
 
     public TabResponse update(Long id, TabRequest request) {
         TabEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tab not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Comanda não encontrada: " + id));
 
         TableEntity table = tableRepository.findById(request.getTableId())
-                .orElseThrow(() -> new RuntimeException("Table not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + request.getTableId()));
 
         entity.setTotalValue(request.getTotalValue());
         entity.setTable(table);
@@ -109,7 +111,7 @@ public class TabService {
 
     public TabResponse getById(Long id) {
         TabEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tab not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Comanda não encontrada: " + id));
         return toResponse(entity);
     }
 
@@ -122,7 +124,7 @@ public class TabService {
      */
     public void recalculateTotalValue(Long tabId) {
         TabEntity tab = repository.findById(tabId)
-                .orElseThrow(() -> new RuntimeException("Tab not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Comanda não encontrada: " + tabId));
 
         List<OrderEntity> orders = orderRepository.findByTabId(tabId);
         BigDecimal totalValue = BigDecimal.ZERO;
