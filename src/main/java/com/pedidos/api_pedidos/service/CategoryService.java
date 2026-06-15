@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import com.pedidos.api_pedidos.domain.entity.CategoryEntity;
 import com.pedidos.api_pedidos.dto.category.CategoryRequest;
 import com.pedidos.api_pedidos.dto.category.CategoryResponse;
+import com.pedidos.api_pedidos.exception.ConflictException;
+import com.pedidos.api_pedidos.exception.ResourceNotFoundException;
 import com.pedidos.api_pedidos.repository.CategoryRepository;
 
 import java.util.List;
@@ -27,7 +29,7 @@ public class CategoryService {
 
     public CategoryResponse update(Long id, CategoryRequest request) {
         CategoryEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + id));
 
         entity.setName(request.getName());
         entity.setDescription(request.getDescription());
@@ -45,11 +47,21 @@ public class CategoryService {
 
     public CategoryResponse getById(Long id) {
         CategoryEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + id));
         return toResponse(entity);
     }
 
+    /**
+     * DELETE — retorna 409 se houver produtos associados à categoria
+     */
     public void delete(Long id) {
+        repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + id));
+
+        if (repository.existsProductByCategoryId(id)) {
+            throw new ConflictException("Não é possível remover: categoria possui produtos associados");
+        }
+
         repository.deleteById(id);
     }
 

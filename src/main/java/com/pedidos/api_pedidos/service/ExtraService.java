@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import com.pedidos.api_pedidos.domain.entity.ExtraEntity;
 import com.pedidos.api_pedidos.dto.extra.ExtraRequest;
 import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
+import com.pedidos.api_pedidos.exception.ConflictException;
+import com.pedidos.api_pedidos.exception.ResourceNotFoundException;
 import com.pedidos.api_pedidos.repository.ExtraRepository;
 
 import java.util.List;
@@ -27,7 +29,7 @@ public class ExtraService {
 
     public ExtraResponse update(Long id, ExtraRequest request) {
         ExtraEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Extra not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Extra não encontrado: " + id));
 
         entity.setName(request.getName());
         entity.setPrice(request.getPrice());
@@ -45,11 +47,19 @@ public class ExtraService {
 
     public ExtraResponse getById(Long id) {
         ExtraEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Extra not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Extra não encontrado: " + id));
         return toResponse(entity);
     }
 
+
     public void delete(Long id) {
+        repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Extra não encontrado: " + id));
+
+        if (repository.isExtraInOpenTab(id)) {
+            throw new ConflictException("Não é possível remover: extra está sendo usado em uma comanda aberta");
+        }
+
         repository.deleteById(id);
     }
 
