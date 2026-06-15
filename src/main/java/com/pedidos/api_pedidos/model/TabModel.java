@@ -1,6 +1,8 @@
+package com.pedidos.api_pedidos.model;
+
 import jakarta.persistence.*;
-import java.util.List;
 import java.util.UUID;
+
 
 @Entity
 @Table(name = "tab")
@@ -18,9 +20,5 @@ public class TabModel {
     @JoinColumn(name = "table_id")
     private TableModel table;
 
-    // Uma comanda possui vários pedidos
-    @OneToMany(mappedBy = "tab", cascade = CascadeType.ALL)
-    private List<OrderModel> orders;
 
-    // Getters e Setters
 }

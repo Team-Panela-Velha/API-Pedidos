@@ -1,9 +1,12 @@
+package com.pedidos.api_pedidos.model;
+
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
 
+
 @Entity
-@Table(name = "\"table\"") // Aspas para lidar com palavra reservada
+@Table(name = "\"table\"")
 public class TableModel {
 
     @Id
@@ -14,8 +17,7 @@ public class TableModel {
     @Column(nullable = false)
     private String code;
 
-    // Uma mesa pode ter várias comandas (histórico ou simultâneas)
+
     @OneToMany(mappedBy = "table", cascade = CascadeType.ALL)
     private List<TabModel> tabs;
-
 }
