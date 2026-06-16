@@ -1,26 +1,20 @@
 package com.pedidos.api_pedidos.service;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.pedidos.api_pedidos.domain.entity.ExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.ItemExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.OrderEntity;
 import com.pedidos.api_pedidos.domain.entity.OrderItemEntity;
-import com.pedidos.api_pedidos.domain.entity.ProductEntity;
 import com.pedidos.api_pedidos.domain.entity.TabEntity;
 import com.pedidos.api_pedidos.domain.enums.OrderStatus;
 import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
-import com.pedidos.api_pedidos.dto.order.CreateOrderRequest;
 import com.pedidos.api_pedidos.dto.order.OrderRequest;
 import com.pedidos.api_pedidos.dto.order.OrderResponse;
-import com.pedidos.api_pedidos.dto.order.UpdateOrderStatusRequest;
-import com.pedidos.api_pedidos.dto.order_item.OrderItemRequest;
 import com.pedidos.api_pedidos.dto.order_item.OrderItemResponse;
 import com.pedidos.api_pedidos.repository.ExtraRepository;
 import com.pedidos.api_pedidos.repository.ItemExtraRepository;
@@ -37,9 +31,6 @@ public class OrderService {
     private final TabRepository tabRepository;
     private final OrderItemRepository orderItemRepository;
     private final ItemExtraRepository itemExtraRepository;
-    private final ProductRepository productRepository;
-    private final ExtraRepository extraRepository;
-    private final ProductExtraRepository productExtraRepository;
     private final FcmService fcmService;
     private final TabService tabService;
 
@@ -56,9 +47,6 @@ public class OrderService {
         this.tabRepository = tabRepository;
         this.orderItemRepository = orderItemRepository;
         this.itemExtraRepository = itemExtraRepository;
-        this.productRepository = productRepository;
-        this.extraRepository = extraRepository;
-        this.productExtraRepository = productExtraRepository;
         this.fcmService = fcmService;
         this.tabService = tabService;
     }
@@ -75,133 +63,47 @@ public class OrderService {
                 .map(this::toDetailedResponse)
                 .collect(Collectors.toList());
     }
+    
+//     public void updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
+//         List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
+//         if (items.isEmpty()) {
+//             throw new RuntimeException("Order has no items");
+//         }
 
-    /**
-     * Cria um novo pedido com itens e extras.
-     * POST /orders - Recebe lista de itens (product_id, quantity, observation, extra_ids)
-     * Valida que a comanda existe e está OPEN; retorna 409 se não estiver
-     * Para cada item persiste unit_price_snapshot = product.price no momento da criação
-     * Após criar chama FcmService.notifyKitchen(orderId)
-     * Chama TabService.recalculateTotalValue(tabId) ao final
-     */
-    public OrderResponse createOrderWithItems(CreateOrderRequest request) {
-        TabEntity tab = tabRepository.findById(request.getTabId())
-                .orElseThrow(() -> new RuntimeException("Tab not found"));
+//         OrderEntity order = repository.findById(orderId)
+//                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        // Valida que a comanda está OPEN
-        if (Boolean.TRUE.equals(tab.getClosed())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot add orders to a closed tab");
-        }
+//         OrderStatus newStatus = request.getStatus();
 
-        // Cria a ordem
-        OrderEntity order = new OrderEntity(tab);
-        order = repository.save(order);
+//         for (OrderItemEntity item : items) {
+//             OrderStatus currentStatus = item.getStatus();
 
-        // Cria os itens e extras
-        if (request.getItems() != null && !request.getItems().isEmpty()) {
-            for (OrderItemRequest itemRequest : request.getItems()) {
-                ProductEntity product = productRepository.findById(itemRequest.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Product not found: " + itemRequest.getProductId()));
+//             // Valida a sequência: RECEIVED → IN_PREPARATION → READY → DELIVERED
+//             boolean validTransition = false;
+//             if (currentStatus == OrderStatus.RECEIVED && newStatus == OrderStatus.IN_PREPARATION) {
+//                 validTransition = true;
+//             } else if (currentStatus == OrderStatus.IN_PREPARATION && newStatus == OrderStatus.READY) {
+//                 validTransition = true;
+//             } else if (currentStatus == OrderStatus.READY && newStatus == OrderStatus.DELIVERED) {
+//                 validTransition = true;
+//             }
 
-                // Persiste unit_price_snapshot = product.price
-                OrderItemEntity orderItem = new OrderItemEntity(
-                        product,
-                        order,
-                        itemRequest.getQuantity(),
-                        itemRequest.getObservation(),
-                        product.getPrice()
-                );
-                orderItem = orderItemRepository.save(orderItem);
+//             if (!validTransition) {
+//                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+//                         "Invalid order status transition from " + currentStatus + " to " + newStatus);
+//             }
 
-                // Adiciona extras (Função nova 3 — validar que o adicional é permitido para o produto)
-                if (itemRequest.getExtraIds() != null && !itemRequest.getExtraIds().isEmpty()) {
-                    // Adicionais realmente disponíveis para este produto (tabela product_extra)
-                    Set<Long> allowedExtraIds = productExtraRepository.findByProductId(product.getId())
-                            .stream()
-                            .filter(pe -> pe.getExtra() != null)
-                            .map(pe -> pe.getExtra().getId())
-                            .collect(Collectors.toSet());
+//             item.setStatus(newStatus);
+//             orderItemRepository.save(item);
+//         }
 
-                    for (Long extraId : itemRequest.getExtraIds()) {
-                        if (!allowedExtraIds.contains(extraId)) {
-                            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                                    "Adicional " + extraId + " não está disponível para o produto " + product.getId());
-                        }
-                        ExtraEntity extra = extraRepository.findById(extraId)
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                                        "Adicional não encontrado: " + extraId));
-                        ItemExtraEntity itemExtra = new ItemExtraEntity(orderItem, extra);
-                        itemExtraRepository.save(itemExtra);
-                    }
-                }
-            }
-        }
+//         // Chama notifyTable com o tableId
+//         Long tableId = order.getTab() != null ? order.getTab().getTable().getId() : null;
+//         if (tableId != null) {
+//             fcmService.notifyTable(tableId, newStatus);
+//         }
+//     }
 
-        // Chama notifyKitchen
-        fcmService.notifyKitchen(order.getId());
-
-        // Chama notifyWaiter
-        fcmService.notifyWaiter(tab.getId());
-
-        // Recalcula o total da comanda
-        tabService.recalculateTotalValue(tab.getId());
-
-        return toDetailedResponse(order);
-    }
-
-    /**
-     * Atualiza o status do pedido.
-     * PUT /orders/{id}/status
-     * Sequência obrigatória: RECEIVED → IN_PREPARATION → READY → DELIVERED
-     * Fora da sequência retorna 422
-     * Após atualizar chama FcmService.notifyTable(tableId, status)
-     */
-    public void updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
-        List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
-        if (items.isEmpty()) {
-            throw new RuntimeException("Order has no items");
-        }
-
-        OrderEntity order = repository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        OrderStatus newStatus = request.getStatus();
-
-        for (OrderItemEntity item : items) {
-            OrderStatus currentStatus = item.getStatus();
-
-            // Valida a sequência: RECEIVED → IN_PREPARATION → READY → DELIVERED
-            boolean validTransition = false;
-            if (currentStatus == OrderStatus.RECEIVED && newStatus == OrderStatus.IN_PREPARATION) {
-                validTransition = true;
-            } else if (currentStatus == OrderStatus.IN_PREPARATION && newStatus == OrderStatus.READY) {
-                validTransition = true;
-            } else if (currentStatus == OrderStatus.READY && newStatus == OrderStatus.DELIVERED) {
-                validTransition = true;
-            }
-
-            if (!validTransition) {
-                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                        "Invalid order status transition from " + currentStatus + " to " + newStatus);
-            }
-
-            item.setStatus(newStatus);
-            orderItemRepository.save(item);
-        }
-
-        // Chama notifyTable com o tableId
-        Long tableId = order.getTab() != null ? order.getTab().getTable().getId() : null;
-        if (tableId != null) {
-            fcmService.notifyTable(tableId, newStatus);
-        }
-    }
-
-    /**
-     * Deleta um pedido.
-     * DELETE /orders/{id}
-     * Só permitido se status = RECEIVED; caso contrário retorna 409
-     * Após cancelar chama TabService.recalculateTotalValue(tabId)
-     */
     public void deleteOrder(Long orderId) {
         OrderEntity order = repository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
