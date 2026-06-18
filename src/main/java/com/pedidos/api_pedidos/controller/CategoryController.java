@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import com.pedidos.api_pedidos.dto.category.CategoryRequest;
 import com.pedidos.api_pedidos.dto.category.CategoryResponse;
 import com.pedidos.api_pedidos.service.CategoryService;
-import com.pedidos.api_pedidos.shared.ApiResponse;
 
 @RestController
 @RequestMapping("/categories")
@@ -22,32 +21,32 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<CategoryResponse>> create(@RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryResponse> create(@RequestBody CategoryRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.created(service.create(request)));
+                .body(service.create(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> update(
+    public ResponseEntity<CategoryResponse> update(
             @PathVariable Long id,
             @RequestBody CategoryRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok("Categoria atualizada", service.update(id, request)));
+        return ResponseEntity.ok(service.update(id, request));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.ok(service.getAll()));
+    public ResponseEntity<List<CategoryResponse>> getAll() {
+        return ResponseEntity.ok(service.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(service.getById(id)));
+    public ResponseEntity<CategoryResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
-        return ResponseEntity.ok(ApiResponse.ok("Categoria removida", null));
+        return ResponseEntity.noContent().build();
     }
 }

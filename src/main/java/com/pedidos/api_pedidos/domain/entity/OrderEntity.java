@@ -3,7 +3,7 @@ package com.pedidos.api_pedidos.domain.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "order")
+@Table(name = "orders")
 public class OrderEntity {
 
     @Id

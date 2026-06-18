@@ -3,7 +3,6 @@ package com.pedidos.api_pedidos.controller;
 import com.pedidos.api_pedidos.dto.staff_user.StaffUserRequest;
 import com.pedidos.api_pedidos.dto.staff_user.StaffUserResponse;
 import com.pedidos.api_pedidos.service.StaffUserService;
-import com.pedidos.api_pedidos.shared.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +24,8 @@ public class StaffUserController {
      * Lista todos os usuários staff
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<StaffUserResponse>>> getAll() {
-        return ResponseEntity.ok(ApiResponse.ok(service.getAll()));
+    public ResponseEntity<List<StaffUserResponse>> getAll() {
+        return ResponseEntity.ok(service.getAll());
     }
 
     /**
@@ -34,8 +33,8 @@ public class StaffUserController {
      * Retorna 404 se não encontrado
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<StaffUserResponse>> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.ok(service.getById(id)));
+    public ResponseEntity<StaffUserResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
     /**
@@ -43,18 +42,18 @@ public class StaffUserController {
      * Atualiza name, email, role — NUNCA atualiza senha
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<StaffUserResponse>> update(
+    public ResponseEntity<StaffUserResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody StaffUserRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok("Usuário atualizado", service.update(id, request)));
+        return ResponseEntity.ok(service.update(id, request));
     }
 
     /**
      * DELETE /staff-users/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
-        return ResponseEntity.ok(ApiResponse.ok("Usuário removido", null));
+        return ResponseEntity.noContent().build();
     }
 }

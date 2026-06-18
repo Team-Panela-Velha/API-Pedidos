@@ -3,7 +3,7 @@ package com.pedidos.api_pedidos.domain.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "table")
+@Table(name = "restaurant_table")
 public class TableEntity {
 
     @Id
@@ -12,8 +12,6 @@ public class TableEntity {
 
     @Column(nullable = false, unique = true)
     private String code;
-
-    public TableEntity() {}
 
     public TableEntity(String code) {
         this.code = code;

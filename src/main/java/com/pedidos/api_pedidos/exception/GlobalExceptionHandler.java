@@ -1,6 +1,5 @@
 package com.pedidos.api_pedidos.exception;
 
-import com.pedidos.api_pedidos.shared.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,48 +12,48 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex) {
+    public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException ex) {
+    public ResponseEntity<String> handleConflict(ConflictException ex) {
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(UnprocessableException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnprocessable(UnprocessableException ex) {
+    public ResponseEntity<String> handleUnprocessable(UnprocessableException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
+    public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<String> handleValidation(MethodArgumentNotValidException ex) {
         String errors = ex.getBindingResult().getFieldErrors()
                 .stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(ApiResponse.error(errors));
+                .body(errors);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGeneric(Exception ex) {
+    public ResponseEntity<String> handleGeneric(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Erro interno: " + ex.getMessage()));
+                .body("Erro interno: " + ex.getMessage());
     }
 }

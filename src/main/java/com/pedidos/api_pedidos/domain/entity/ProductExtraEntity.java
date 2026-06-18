@@ -11,11 +11,11 @@ public class ProductExtraEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "produto_id")
+    @JoinColumn(name = "product_id")
     private ProductEntity product;
 
     @ManyToOne
-    @JoinColumn(name = "adicional_id")
+    @JoinColumn(name = "extra_id")
     private ExtraEntity extra;
 
     public ProductExtraEntity() {}
