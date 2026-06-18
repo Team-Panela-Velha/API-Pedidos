@@ -13,6 +13,9 @@ public class TableEntity {
     @Column(nullable = false, unique = true)
     private String code;
 
+    protected TableEntity() {
+    }
+
     public TableEntity(String code) {
         this.code = code;
     }
