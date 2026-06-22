@@ -14,7 +14,7 @@ public class ExtraEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal price;
 
     public ExtraEntity() {}

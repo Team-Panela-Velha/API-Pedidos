@@ -4,5 +4,7 @@ public enum DietaryRestriction {
     GLUTEN_FREE,
     LACTOSE_FREE,
     VEGETARIAN,
-    VEGAN
+    VEGAN,
+    SUGAR_FREE,
+    NUT_FREE
 }

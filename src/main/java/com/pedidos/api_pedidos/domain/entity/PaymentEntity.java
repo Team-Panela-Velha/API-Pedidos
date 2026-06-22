@@ -22,7 +22,7 @@ public class PaymentEntity {
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal amount;
 
     @Column(name = "paid_at", nullable = false)

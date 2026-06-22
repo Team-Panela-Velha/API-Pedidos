@@ -2,6 +2,9 @@ package com.pedidos.api_pedidos.domain.entity;
 
 import com.pedidos.api_pedidos.domain.enums.StaffRole;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "staff_user")
@@ -17,12 +20,19 @@ public class StaffUserEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StaffRole role = StaffRole.WAITER;
+
+    @Column(nullable = false)
+    private Boolean active = true;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
     public StaffUserEntity() {}
 
@@ -47,4 +57,10 @@ public class StaffUserEntity {
 
     public StaffRole getRole() { return role; }
     public void setRole(StaffRole role) { this.role = role; }
+
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

@@ -1,8 +1,11 @@
 package com.pedidos.api_pedidos.domain.entity;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import com.pedidos.api_pedidos.domain.enums.OrderStatus;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,8 +40,12 @@ public class OrderItemEntity {
     @Column(columnDefinition = "text")
     private String observation;
 
-    @Column(name = "unit_price_snapshot", nullable = false, precision = 10, scale = 2)
+    @Column(name = "unit_price_snapshot", nullable = false, precision = 8, scale = 2)
     private BigDecimal unitPriceSnapshot;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -72,6 +79,9 @@ public class OrderItemEntity {
 
     public BigDecimal getUnitPriceSnapshot() { return unitPriceSnapshot; }
     public void setUnitPriceSnapshot(BigDecimal unitPriceSnapshot) { this.unitPriceSnapshot = unitPriceSnapshot; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }

@@ -17,6 +17,7 @@ import com.pedidos.api_pedidos.dto.product.ProductResponse;
 import com.pedidos.api_pedidos.repository.CategoryRepository;
 import com.pedidos.api_pedidos.repository.OrderItemRepository;
 import com.pedidos.api_pedidos.repository.ProductDietaryRestrictionRepository;
+import com.pedidos.api_pedidos.repository.ProductExtraRepository;
 import com.pedidos.api_pedidos.repository.ProductRepository;
 
 @Service
@@ -26,15 +27,18 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductDietaryRestrictionRepository productDietaryRestrictionRepository;
     private final OrderItemRepository orderItemRepository;
+    private final ProductExtraRepository productExtraRepository;
 
     public ProductService(ProductRepository repository,
                           CategoryRepository categoryRepository,
                           ProductDietaryRestrictionRepository productDietaryRestrictionRepository,
-                          OrderItemRepository orderItemRepository) {
+                          OrderItemRepository orderItemRepository,
+                          ProductExtraRepository productExtraRepository) {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
         this.productDietaryRestrictionRepository = productDietaryRestrictionRepository;
         this.orderItemRepository = orderItemRepository;
+        this.productExtraRepository = productExtraRepository;
     }
 
     public ProductResponse create(ProductRequest request) {
@@ -166,8 +170,9 @@ public class ProductService {
 
     private ProductResponse toResponseWithExtras(ProductEntity entity) {
         Long categoryId = entity.getCategory() != null ? entity.getCategory().getId() : null;
-        java.util.List<com.pedidos.api_pedidos.dto.extra.ExtraResponse> extras = entity.getExtras()
+        java.util.List<com.pedidos.api_pedidos.dto.extra.ExtraResponse> extras = productExtraRepository.findByProductId(entity.getId())
             .stream()
+            .map(pe -> pe.getExtra())
             .map(e -> new com.pedidos.api_pedidos.dto.extra.ExtraResponse(e.getId(), e.getName(), e.getPrice()))
             .collect(Collectors.toList());
         return new ProductResponse(

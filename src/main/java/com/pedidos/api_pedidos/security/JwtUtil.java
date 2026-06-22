@@ -34,7 +34,7 @@ public class JwtUtil {
     }
 
     /**
-     * Gera token para staff (ADMIN/WAITER)
+     * Gera token para staff (ADMIN/MANAGER/WAITER/KITCHEN)
      */
     public String generateStaffToken(StaffUserEntity user) {
         return Jwts.builder()
