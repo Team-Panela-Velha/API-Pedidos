@@ -6,7 +6,6 @@ import com.pedidos.api_pedidos.dto.auth.RegisterRequest;
 import com.pedidos.api_pedidos.dto.staff_user.StaffUserResponse;
 import com.pedidos.api_pedidos.security.TokenBlacklist;
 import com.pedidos.api_pedidos.service.StaffUserService;
-import com.pedidos.api_pedidos.shared.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,11 +31,11 @@ public class AuthController {
      * Lança: 409 se e-mail já existir
      */
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<StaffUserResponse>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<StaffUserResponse> register(@Valid @RequestBody RegisterRequest request) {
         StaffUserResponse response = staffUserService.register(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.created(response));
+                .body(response);
     }
 
     /**
@@ -46,9 +45,9 @@ public class AuthController {
      * Lança: 401 se inválido
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = staffUserService.login(request);
-        return ResponseEntity.ok(ApiResponse.ok("Login realizado com sucesso", authResponse));
+        return ResponseEntity.ok(authResponse);
     }
 
     /**
@@ -58,11 +57,11 @@ public class AuthController {
      * Retorna: 200
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(Authentication authentication) {
+    public ResponseEntity<Void> logout(Authentication authentication) {
         if (authentication != null && authentication.getCredentials() != null) {
             String token = authentication.getCredentials().toString();
             tokenBlacklist.add(token);
         }
-        return ResponseEntity.ok(ApiResponse.ok("Logout realizado com sucesso", null));
+        return ResponseEntity.noContent().build();
     }
 }

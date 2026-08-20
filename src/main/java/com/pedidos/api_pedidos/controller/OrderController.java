@@ -40,11 +40,18 @@ public class OrderController {
         return service.getById(id);
     }
 
+<<<<<<< HEAD
     // TODO
     // @PutMapping("/{id}/status")
     // public void updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderStatusRequest request) {
     //     service.updateOrderStatus(id, request);
     // }
+=======
+    @PutMapping("/{id}/status")
+    public void updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderStatusRequest request) {
+        service.updateOrderStatus(id, request);
+    }
+>>>>>>> main
 
     @DeleteMapping("/{id}")
     public void deleteOrder(@PathVariable Long id) {

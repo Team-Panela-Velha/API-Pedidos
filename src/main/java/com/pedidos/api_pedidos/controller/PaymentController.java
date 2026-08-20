@@ -4,7 +4,6 @@ import com.pedidos.api_pedidos.dto.payment.PaymentRequest;
 import com.pedidos.api_pedidos.dto.payment.PaymentResponse;
 import com.pedidos.api_pedidos.security.JwtUtil;
 import com.pedidos.api_pedidos.service.PaymentService;
-import com.pedidos.api_pedidos.shared.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -24,15 +23,15 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PaymentResponse>> create(@RequestBody PaymentRequest request,
+    public ResponseEntity<PaymentResponse> create(@RequestBody PaymentRequest request,
                                                                Authentication authentication) {
         Long staffUserId = extractStaffUserId(authentication);
-        return ResponseEntity.ok(ApiResponse.created(service.create(request, staffUserId)));
+        return ResponseEntity.ok(service.create(request, staffUserId));
     }
 
     @GetMapping("/tab/{tabId}")
-    public ResponseEntity<ApiResponse<List<PaymentResponse>>> getByTab(@PathVariable Long tabId) {
-        return ResponseEntity.ok(ApiResponse.ok(service.getByTab(tabId)));
+    public ResponseEntity<List<PaymentResponse>> getByTab(@PathVariable Long tabId) {
+        return ResponseEntity.ok(service.getByTab(tabId));
     }
 
     /** Extrai o id do staff (claim "id") do token JWT presente nas credenciais; null se for token de mesa. */

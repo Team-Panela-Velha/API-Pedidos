@@ -197,10 +197,11 @@ public class OrderService {
                             .collect(Collectors.toList());
 
                     String productName = item.getProduct() != null ? item.getProduct().getName() : null;
+                    String productImage = item.getProduct() != null ? item.getProduct().getImage() : null;
                     Long productId = item.getProduct() != null ? item.getProduct().getId() : null;
 
                     return new OrderItemResponse(
-                            item.getId(), productId, productName,
+                            item.getId(), productId, productName, productImage,
                             order.getId(), item.getQuantity(),
                             item.getObservation(), item.getUnitPriceSnapshot(),
                             item.getStatus(), extras);
