@@ -19,8 +19,6 @@ public class TabController {
         this.service = service;
     }
 
-    // ── Endpoints solicitados ─────────────────────────────────────────────────
-
     @PostMapping("/start")
     public TabResponse startTab(@RequestBody StartTabRequest request) {
         return service.startTab(request);
@@ -30,8 +28,6 @@ public class TabController {
     public TabResponse closeTab(@PathVariable Long id) {
         return service.closeTab(id);
     }
-
-    // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     @PostMapping
     public TabResponse create(@RequestBody TabRequest request) {

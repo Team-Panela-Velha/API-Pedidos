@@ -40,10 +40,10 @@ public class ProductController {
         return service.getByCategory(categoryId, available);
     }
 
-    // Função nova 2 — busca (search bar)
     @GetMapping("/search")
-    public List<ProductResponse> search(@RequestParam(value = "q", required = false) String q) {
-        return service.search(q);
+    public List<ProductResponse> search(@RequestParam(value = "keyword", required = false) String keyword,
+                                        @RequestParam(value = "categoryId", required = false) Long categoryId) {
+        return service.search(keyword, categoryId);
     }
 
     @GetMapping("/{id}")

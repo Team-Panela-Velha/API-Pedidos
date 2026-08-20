@@ -93,6 +93,7 @@ public class OrderItemService {
     private OrderItemResponse toResponse(OrderItemEntity entity) {
         Long productId = entity.getProduct() != null ? entity.getProduct().getId() : null;
         String productName = entity.getProduct() != null ? entity.getProduct().getName() : null;
+        String productImage = entity.getProduct() != null ? entity.getProduct().getImage() : null;
         Long orderId = entity.getOrder() != null ? entity.getOrder().getId() : null;
 
         List<ExtraResponse> extras = itemExtraRepository.findByOrderItemId(entity.getId())
@@ -104,7 +105,7 @@ public class OrderItemService {
                 .collect(Collectors.toList());
 
         return new OrderItemResponse(
-                entity.getId(), productId, productName, orderId,
+                entity.getId(), productId, productName, productImage, orderId,
                 entity.getQuantity(), entity.getObservation(),
                 entity.getUnitPriceSnapshot(), entity.getStatus(), extras);
     }

@@ -11,6 +11,7 @@ public class OrderItemResponse {
     private Long id;
     private Long productId;
     private String productName;
+    private String productImage;
     private Long orderId;
     private Short quantity;
     private String observation;
@@ -18,12 +19,13 @@ public class OrderItemResponse {
     private OrderStatus status;
     private List<ExtraResponse> extras;
 
-    public OrderItemResponse(Long id, Long productId, String productName, Long orderId,
+    public OrderItemResponse(Long id, Long productId, String productName, String productImage, Long orderId,
                              Short quantity, String observation, BigDecimal unitPriceSnapshot, 
                              OrderStatus status, List<ExtraResponse> extras) {
         this.id = id;
         this.productId = productId;
         this.productName = productName;
+        this.productImage = productImage;
         this.orderId = orderId;
         this.quantity = quantity;
         this.observation = observation;
@@ -35,6 +37,7 @@ public class OrderItemResponse {
     public Long getId() { return id; }
     public Long getProductId() { return productId; }
     public String getProductName() { return productName; }
+    public String getProductImage() { return productImage; }
     public Long getOrderId() { return orderId; }
     public Short getQuantity() { return quantity; }
     public String getObservation() { return observation; }
