@@ -125,14 +125,12 @@ public class ProductService {
     }
 
     /**
-     * Função nova 2 — Busca produtos por nome + descrição + nome da categoria.
-     * Termo vazio/ausente retorna lista vazia (evita payload grande sem intenção de busca).
+     * Busca produtos por keyword (nome/descrição/nome da categoria) e/ou categoryId.
+     * Ambos os parâmetros são opcionais.
      */
-    public List<ProductResponse> search(String q) {
-        if (q == null || q.isBlank()) {
-            return List.of();
-        }
-        return repository.search(q.trim())
+    public List<ProductResponse> search(String keyword, Long categoryId) {
+        String trimmedKeyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        return repository.search(trimmedKeyword, categoryId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

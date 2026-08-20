@@ -13,14 +13,16 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     // Função nova 1 — produtos por categoria
     List<ProductEntity> findByCategoryId(Long categoryId);
 
-    // Função nova 2 — busca por nome do produto + descrição + nome da categoria (case-insensitive, match parcial)
+    // Busca por keyword (nome/descrição/nome da categoria) e/ou categoryId (case-insensitive, match parcial)
     @Query("""
         SELECT p FROM ProductEntity p
         LEFT JOIN p.category c
-        WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))
-           OR LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%'))
-           OR LOWER(c.name) LIKE LOWER(CONCAT('%', :q, '%'))
+        WHERE (:keyword IS NULL OR :keyword = '' OR
+               LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:categoryId IS NULL OR c.id = :categoryId)
         ORDER BY p.name ASC
         """)
-    List<ProductEntity> search(@Param("q") String q);
+    List<ProductEntity> search(@Param("keyword") String keyword, @Param("categoryId") Long categoryId);
 }
