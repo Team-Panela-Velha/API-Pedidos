@@ -7,14 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.pedidos.api_pedidos.domain.entity.ExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.ItemExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.OrderEntity;
 import com.pedidos.api_pedidos.domain.entity.OrderItemEntity;
+import com.pedidos.api_pedidos.domain.entity.ProductEntity;
 import com.pedidos.api_pedidos.domain.entity.TabEntity;
 import com.pedidos.api_pedidos.domain.enums.OrderStatus;
 import com.pedidos.api_pedidos.dto.extra.ExtraResponse;
+import com.pedidos.api_pedidos.dto.order.CreateOrderRequest;
 import com.pedidos.api_pedidos.dto.order.OrderRequest;
 import com.pedidos.api_pedidos.dto.order.OrderResponse;
+import com.pedidos.api_pedidos.dto.order_item.OrderItemRequest;
 import com.pedidos.api_pedidos.dto.order_item.OrderItemResponse;
 import com.pedidos.api_pedidos.repository.ExtraRepository;
 import com.pedidos.api_pedidos.repository.ItemExtraRepository;
@@ -31,6 +35,8 @@ public class OrderService {
     private final TabRepository tabRepository;
     private final OrderItemRepository orderItemRepository;
     private final ItemExtraRepository itemExtraRepository;
+    private final ProductRepository productRepository;
+    private final ExtraRepository extraRepository;
     private final FcmService fcmService;
     private final TabService tabService;
 
@@ -47,6 +53,8 @@ public class OrderService {
         this.tabRepository = tabRepository;
         this.orderItemRepository = orderItemRepository;
         this.itemExtraRepository = itemExtraRepository;
+        this.productRepository = productRepository;
+        this.extraRepository = extraRepository;
         this.fcmService = fcmService;
         this.tabService = tabService;
     }
@@ -134,6 +142,49 @@ public class OrderService {
 
         // Notifica garçons sobre a remoção do pedido
         fcmService.notifyWaiter(tabId);
+    }
+
+    // ── Cria pedido com itens e extras ────────────────────────────────────────
+
+    public OrderResponse create(CreateOrderRequest request) {
+        TabEntity tab = tabRepository.findById(request.getTabId())
+                .orElseThrow(() -> new RuntimeException("Tab not found"));
+
+        if (Boolean.TRUE.equals(tab.getClosed())) {
+            throw new RuntimeException("Cannot add orders to a closed tab");
+        }
+
+        OrderEntity order = new OrderEntity(tab);
+        order = repository.save(order);
+
+        List<OrderItemRequest> itemRequests = request.getItems();
+        if (itemRequests != null && !itemRequests.isEmpty()) {
+            for (OrderItemRequest itemReq : itemRequests) {
+                ProductEntity product = productRepository.findById(itemReq.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product not found: " + itemReq.getProductId()));
+
+                OrderItemEntity item = new OrderItemEntity(
+                        product, order, itemReq.getQuantity(),
+                        itemReq.getObservation(), product.getPrice());
+                item = orderItemRepository.save(item);
+
+                List<Long> extraIds = itemReq.getExtraIds();
+                if (extraIds != null && !extraIds.isEmpty()) {
+                    for (Long extraId : extraIds) {
+                        ExtraEntity extra = extraRepository.findById(extraId)
+                                .orElseThrow(() -> new RuntimeException("Extra not found: " + extraId));
+                        ItemExtraEntity itemExtra = new ItemExtraEntity(item, extra);
+                        itemExtraRepository.save(itemExtra);
+                    }
+                }
+            }
+        }
+
+        tabService.recalculateTotalValue(tab.getId());
+        fcmService.notifyKitchen(order.getId());
+        fcmService.notifyWaiter(tab.getId());
+
+        return toDetailedResponse(order);
     }
 
     // ── CRUD padrão (legado) ──────────────────────────────────────────────────

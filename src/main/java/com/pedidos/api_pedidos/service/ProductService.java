@@ -1,7 +1,6 @@
 package com.pedidos.api_pedidos.service;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -9,14 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.pedidos.api_pedidos.domain.entity.CategoryEntity;
-import com.pedidos.api_pedidos.domain.entity.ProductDietaryRestrictionEntity;
 import com.pedidos.api_pedidos.domain.entity.ProductEntity;
-import com.pedidos.api_pedidos.domain.enums.DietaryRestriction;
 import com.pedidos.api_pedidos.dto.product.ProductRequest;
 import com.pedidos.api_pedidos.dto.product.ProductResponse;
 import com.pedidos.api_pedidos.repository.CategoryRepository;
 import com.pedidos.api_pedidos.repository.OrderItemRepository;
-import com.pedidos.api_pedidos.repository.ProductDietaryRestrictionRepository;
 import com.pedidos.api_pedidos.repository.ProductRepository;
 
 @Service
@@ -24,16 +20,13 @@ public class ProductService {
 
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
-    private final ProductDietaryRestrictionRepository productDietaryRestrictionRepository;
     private final OrderItemRepository orderItemRepository;
 
     public ProductService(ProductRepository repository,
                           CategoryRepository categoryRepository,
-                          ProductDietaryRestrictionRepository productDietaryRestrictionRepository,
                           OrderItemRepository orderItemRepository) {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
-        this.productDietaryRestrictionRepository = productDietaryRestrictionRepository;
         this.orderItemRepository = orderItemRepository;
     }
 
@@ -71,19 +64,8 @@ public class ProductService {
         return toResponseWithExtras(entity);
     }
 
-    public List<ProductResponse> getAll(Boolean available, List<DietaryRestriction> restrictions) {
+    public List<ProductResponse> getAll(Boolean available) {
         List<ProductEntity> products = repository.findAll();
-
-        // Exclude products that have any of the requested restrictions
-        if (restrictions != null && !restrictions.isEmpty()) {
-            List<ProductDietaryRestrictionEntity> entries = productDietaryRestrictionRepository.findByRestrictionIn(restrictions);
-            Set<Long> excludedProductIds = entries.stream()
-                    .map(e -> e.getProduct().getId())
-                    .collect(Collectors.toSet());
-            products = products.stream()
-                    .filter(p -> !excludedProductIds.contains(p.getId()))
-                    .collect(Collectors.toList());
-        }
 
         if (available != null) {
             products = products.stream()

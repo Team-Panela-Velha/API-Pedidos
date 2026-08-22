@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pedidos.api_pedidos.dto.order.CreateOrderRequest;
 import com.pedidos.api_pedidos.dto.order.OrderRequest;
 import com.pedidos.api_pedidos.dto.order.OrderResponse;
 import com.pedidos.api_pedidos.service.OrderService;
@@ -26,7 +27,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public OrderResponse createOrderWithItems(@RequestBody OrderRequest request) {
+    public OrderResponse createOrderWithItems(@RequestBody CreateOrderRequest request) {
         return service.create(request);
     }
 
@@ -40,18 +41,11 @@ public class OrderController {
         return service.getById(id);
     }
 
-<<<<<<< HEAD
     // TODO
     // @PutMapping("/{id}/status")
     // public void updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderStatusRequest request) {
     //     service.updateOrderStatus(id, request);
     // }
-=======
-    @PutMapping("/{id}/status")
-    public void updateOrderStatus(@PathVariable Long id, @RequestBody UpdateOrderStatusRequest request) {
-        service.updateOrderStatus(id, request);
-    }
->>>>>>> main
 
     @DeleteMapping("/{id}")
     public void deleteOrder(@PathVariable Long id) {

@@ -28,9 +28,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> getAll(@RequestParam(value = "available", required = false) Boolean available,
-                                        @RequestParam(value = "restrictions", required = false) List<com.pedidos.api_pedidos.domain.enums.DietaryRestriction> restrictions) {
-        return service.getAll(available, restrictions);
+    public List<ProductResponse> getAll(@RequestParam(value = "available", required = false) Boolean available) {
+        return service.getAll(available);
     }
 
     // Função nova 1 — produtos por categoria
