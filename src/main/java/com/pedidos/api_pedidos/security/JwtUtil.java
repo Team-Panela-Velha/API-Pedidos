@@ -1,6 +1,6 @@
 package com.pedidos.api_pedidos.security;
 
-import com.pedidos.api_pedidos.domain.entity.StaffUserEntity;
+import com.pedidos.api_pedidos.domain.entity.UserEntity;
 import com.pedidos.api_pedidos.domain.entity.TableEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -24,7 +24,6 @@ public class JwtUtil {
 
     private SecretKey getKey() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-        // Garante mínimo 256 bits (32 bytes) para HMAC-SHA256
         if (keyBytes.length < 32) {
             byte[] padded = new byte[32];
             System.arraycopy(keyBytes, 0, padded, 0, keyBytes.length);
@@ -33,10 +32,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    /**
-     * Gera token para staff (ADMIN/WAITER)
-     */
-    public String generateStaffToken(StaffUserEntity user) {
+    public String generateUserToken(UserEntity user) {
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("id", user.getId())
@@ -47,9 +43,6 @@ public class JwtUtil {
                 .compact();
     }
 
-    /**
-     * Gera token para mesa (role=TABLE)
-     */
     public String generateTableToken(TableEntity table) {
         return Jwts.builder()
                 .subject(table.getCode())

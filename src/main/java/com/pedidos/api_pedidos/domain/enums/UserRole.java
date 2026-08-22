@@ -1,6 +1,6 @@
 package com.pedidos.api_pedidos.domain.enums;
 
-public enum StaffRole {
+public enum UserRole {
     ADMIN,
     WAITER
 }

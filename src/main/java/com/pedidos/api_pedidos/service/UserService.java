@@ -1,16 +1,16 @@
 package com.pedidos.api_pedidos.service;
 
-import com.pedidos.api_pedidos.domain.entity.StaffUserEntity;
-import com.pedidos.api_pedidos.domain.enums.StaffRole;
+import com.pedidos.api_pedidos.domain.entity.UserEntity;
+import com.pedidos.api_pedidos.domain.enums.UserRole;
 import com.pedidos.api_pedidos.dto.auth.AuthResponse;
 import com.pedidos.api_pedidos.dto.auth.LoginRequest;
 import com.pedidos.api_pedidos.dto.auth.RegisterRequest;
-import com.pedidos.api_pedidos.dto.staff_user.StaffUserRequest;
-import com.pedidos.api_pedidos.dto.staff_user.StaffUserResponse;
+import com.pedidos.api_pedidos.dto.user.UserRequest;
+import com.pedidos.api_pedidos.dto.user.UserResponse;
 import com.pedidos.api_pedidos.exception.ConflictException;
 import com.pedidos.api_pedidos.exception.ResourceNotFoundException;
 import com.pedidos.api_pedidos.exception.UnauthorizedException;
-import com.pedidos.api_pedidos.repository.StaffUserRepository;
+import com.pedidos.api_pedidos.repository.UserRepository;
 import com.pedidos.api_pedidos.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,13 +19,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class StaffUserService {
+public class UserService {
 
-    private final StaffUserRepository repository;
+    private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public StaffUserService(StaffUserRepository repository,
+    public UserService(UserRepository repository,
                             PasswordEncoder passwordEncoder,
                             JwtUtil jwtUtil) {
         this.repository = repository;
@@ -34,20 +34,20 @@ public class StaffUserService {
     }
 
 
-    public StaffUserResponse register(RegisterRequest request) {
+    public UserResponse register(RegisterRequest request) {
         if (repository.existsByEmail(request.getEmail())) {
             throw new ConflictException("E-mail já cadastrado: " + request.getEmail());
         }
 
-        StaffRole role = StaffRole.WAITER;
+        UserRole role = UserRole.WAITER;
         if (request.getRole() != null) {
             try {
-                role = StaffRole.valueOf(request.getRole().toUpperCase());
+                role = UserRole.valueOf(request.getRole().toUpperCase());
             } catch (IllegalArgumentException ignored) {
             }
         }
 
-        StaffUserEntity entity = new StaffUserEntity(
+        UserEntity entity = new UserEntity(
                 request.getName(),
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword()),
@@ -58,14 +58,14 @@ public class StaffUserService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        StaffUserEntity entity = repository.findByEmail(request.getEmail())
+        UserEntity entity = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Credenciais inválidas"));
 
         if (!passwordEncoder.matches(request.getPassword(), entity.getPasswordHash())) {
             throw new UnauthorizedException("Credenciais inválidas");
         }
 
-        String token = jwtUtil.generateStaffToken(entity);
+        String token = jwtUtil.generateUserToken(entity);
         return new AuthResponse(
                 token,
                 entity.getId(),
@@ -76,25 +76,25 @@ public class StaffUserService {
     }
 
 
-    public List<StaffUserResponse> getAll() {
+    public List<UserResponse> getAll() {
         return repository.findAll()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public StaffUserResponse getById(Long id) {
+    public UserResponse getById(Long id) {
         return toResponse(findOrThrow(id));
     }
 
-    public StaffUserResponse update(Long id, StaffUserRequest request) {
-        StaffUserEntity entity = findOrThrow(id);
+    public UserResponse update(Long id, UserRequest request) {
+        UserEntity entity = findOrThrow(id);
         entity.setName(request.getName());
         entity.setEmail(request.getEmail());
 
         if (request.getRole() != null) {
             try {
-                entity.setRole(StaffRole.valueOf(request.getRole().toUpperCase()));
+                entity.setRole(UserRole.valueOf(request.getRole().toUpperCase()));
             } catch (IllegalArgumentException ignored) {
             }
         }
@@ -108,13 +108,13 @@ public class StaffUserService {
     }
 
 
-    private StaffUserEntity findOrThrow(Long id) {
+    private UserEntity findOrThrow(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + id));
     }
 
-    private StaffUserResponse toResponse(StaffUserEntity entity) {
-        return new StaffUserResponse(
+    private UserResponse toResponse(UserEntity entity) {
+        return new UserResponse(
                 entity.getId(),
                 entity.getName(),
                 entity.getEmail(),

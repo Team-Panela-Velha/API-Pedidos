@@ -1,15 +1,15 @@
-package com.pedidos.api_pedidos.dto.staff_user;
+package com.pedidos.api_pedidos.dto.user;
 
-public class StaffUserResponse {
+public class UserResponse {
 
     private Long id;
     private String name;
     private String email;
     private String role;
 
-    public StaffUserResponse() {}
+    public UserResponse() {}
 
-    public StaffUserResponse(Long id, String name, String email, String role) {
+    public UserResponse(Long id, String name, String email, String role) {
         this.id = id;
         this.name = name;
         this.email = email;
