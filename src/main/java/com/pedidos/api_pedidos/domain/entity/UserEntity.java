@@ -1,14 +1,11 @@
 package com.pedidos.api_pedidos.domain.entity;
 
-import com.pedidos.api_pedidos.domain.enums.StaffRole;
+import com.pedidos.api_pedidos.domain.enums.UserRole;
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.Instant;
 
 @Entity
-@Table(name = "staff_user")
-public class StaffUserEntity {
+@Table(name = "user")
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,18 +22,11 @@ public class StaffUserEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StaffRole role = StaffRole.WAITER;
+    private UserRole role = UserRole.WAITER;
 
-    @Column(nullable = false)
-    private Boolean active = true;
+    public UserEntity() {}
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    public StaffUserEntity() {}
-
-    public StaffUserEntity(String name, String email, String passwordHash, StaffRole role) {
+    public UserEntity(String name, String email, String passwordHash, UserRole role) {
         this.name = name;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -55,12 +45,6 @@ public class StaffUserEntity {
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
-    public StaffRole getRole() { return role; }
-    public void setRole(StaffRole role) { this.role = role; }
-
-    public Boolean getActive() { return active; }
-    public void setActive(Boolean active) { this.active = active; }
-
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
 }

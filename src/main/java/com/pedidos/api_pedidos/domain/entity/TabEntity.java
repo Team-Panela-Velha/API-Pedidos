@@ -31,7 +31,7 @@ public class TabEntity {
 
     @ManyToOne
     @JoinColumn(name = "closed_by_id")
-    private StaffUserEntity closedBy;
+    private UserEntity closedBy;
 
     @Column(nullable = false)
     private Boolean closed = false;
@@ -64,8 +64,8 @@ public class TabEntity {
     public Instant getClosedAt() { return closedAt; }
     public void setClosedAt(Instant closedAt) { this.closedAt = closedAt; }
 
-    public StaffUserEntity getClosedBy() { return closedBy; }
-    public void setClosedBy(StaffUserEntity closedBy) { this.closedBy = closedBy; }
+    public UserEntity getClosedBy() { return closedBy; }
+    public void setClosedBy(UserEntity closedBy) { this.closedBy = closedBy; }
 
     public Boolean getClosed() { return closed; }
     public void setClosed(Boolean closed) { this.closed = closed; }
