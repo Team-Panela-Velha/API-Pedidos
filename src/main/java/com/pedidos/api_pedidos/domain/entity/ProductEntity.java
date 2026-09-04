@@ -1,8 +1,6 @@
 package com.pedidos.api_pedidos.domain.entity;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -26,7 +22,7 @@ public class ProductEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal price;
 
     @Column(columnDefinition = "text")
@@ -39,14 +35,8 @@ public class ProductEntity {
     @JoinColumn(name = "category_id")
     private CategoryEntity category;
 
-        @Column(nullable = false)
-        private Boolean available = true;
-
-        @ManyToMany
-        @JoinTable(name = "product_extra",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "extra_id"))
-        private Set<com.pedidos.api_pedidos.domain.entity.ExtraEntity> extras = new HashSet<>();
+    @Column(nullable = false)
+    private Boolean available = true;
 
     public ProductEntity() {}
 
@@ -78,7 +68,4 @@ public class ProductEntity {
 
     public Boolean getAvailable() { return available; }
     public void setAvailable(Boolean available) { this.available = available; }
-
-    public Set<com.pedidos.api_pedidos.domain.entity.ExtraEntity> getExtras() { return extras; }
-    public void setExtras(Set<com.pedidos.api_pedidos.domain.entity.ExtraEntity> extras) { this.extras = extras; }
 }
