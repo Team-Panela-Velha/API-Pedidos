@@ -145,7 +145,7 @@ public class ProductService {
         Long categoryId = entity.getCategory() != null ? entity.getCategory().getId() : null;
         return new ProductResponse(
                 entity.getId(), entity.getName(), entity.getPrice(),
-                entity.getDescription(), entity.getImage(), categoryId);
+                entity.getDescription(), entity.getImage(), categoryId, entity.getAvailable());
     }
 
     private ProductResponse toResponseWithExtras(ProductEntity entity) {
@@ -157,6 +157,6 @@ public class ProductService {
             .collect(Collectors.toList());
         return new ProductResponse(
                 entity.getId(), entity.getName(), entity.getPrice(),
-                entity.getDescription(), entity.getImage(), categoryId, extras);
+                entity.getDescription(), entity.getImage(), categoryId, entity.getAvailable(), extras);
     }
 }
