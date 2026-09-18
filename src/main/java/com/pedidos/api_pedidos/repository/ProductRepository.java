@@ -22,7 +22,10 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
             OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))
             OR LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
           AND (:categoryId IS NULL OR c.id = :categoryId)
+          AND (:available IS NULL OR p.available = :available)
         ORDER BY p.name ASC
         """)
-    List<ProductEntity> search(@Param("keyword") String keyword, @Param("categoryId") Long categoryId);
+    List<ProductEntity> search(@Param("keyword") String keyword,
+                               @Param("categoryId") Long categoryId,
+                               @Param("available") Boolean available);
 }

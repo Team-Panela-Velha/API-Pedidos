@@ -15,6 +15,9 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "client_request_id", unique = true, length = 64)
+    private String clientRequestId;
+
     @ManyToOne
     @JoinColumn(name = "tab_id", nullable = false)
     private TabEntity tab;
@@ -40,6 +43,8 @@ public class OrderEntity {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public String getClientRequestId() { return clientRequestId; }
+    public void setClientRequestId(String clientRequestId) { this.clientRequestId = clientRequestId; }
 
     public TabEntity getTab() { return tab; }
     public void setTab(TabEntity tab) { this.tab = tab; }

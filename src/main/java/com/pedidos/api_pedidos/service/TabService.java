@@ -141,7 +141,7 @@ public class TabService {
                 List<com.pedidos.api_pedidos.domain.entity.ItemExtraEntity> extras = 
                     itemExtraRepository.findByOrderItemId(item.getId());
                 for (com.pedidos.api_pedidos.domain.entity.ItemExtraEntity extra : extras) {
-                    totalValue = totalValue.add(extra.getExtra().getPrice());
+                    totalValue = totalValue.add(extra.getExtra().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
                 }
             }
         }
