@@ -114,9 +114,9 @@ public class ProductService {
      * Busca produtos por keyword (nome/descrição/nome da categoria) e/ou categoryId.
      * Ambos os parâmetros são opcionais.
      */
-    public List<ProductResponse> search(String keyword, Long categoryId) {
+    public List<ProductResponse> search(String keyword, Long categoryId, Boolean available) {
         String trimmedKeyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
-        return repository.search(trimmedKeyword, categoryId)
+        return repository.search(trimmedKeyword, categoryId, available)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

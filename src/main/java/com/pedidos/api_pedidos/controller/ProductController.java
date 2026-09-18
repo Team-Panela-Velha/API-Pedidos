@@ -41,8 +41,9 @@ public class ProductController {
 
     @GetMapping("/search")
     public List<ProductResponse> search(@RequestParam(value = "keyword", required = false) String keyword,
-                                        @RequestParam(value = "categoryId", required = false) Long categoryId) {
-        return service.search(keyword, categoryId);
+                                        @RequestParam(value = "categoryId", required = false) Long categoryId,
+                                        @RequestParam(value = "available", required = false) Boolean available) {
+        return service.search(keyword, categoryId, available);
     }
 
     @GetMapping("/{id}")

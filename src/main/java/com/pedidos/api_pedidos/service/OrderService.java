@@ -1,11 +1,14 @@
 package com.pedidos.api_pedidos.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashSet;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pedidos.api_pedidos.domain.entity.ExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.ItemExtraEntity;
@@ -37,6 +40,7 @@ public class OrderService {
     private final ItemExtraRepository itemExtraRepository;
     private final ProductRepository productRepository;
     private final ExtraRepository extraRepository;
+    private final ProductExtraRepository productExtraRepository;
     private final FcmService fcmService;
     private final TabService tabService;
 
@@ -55,6 +59,7 @@ public class OrderService {
         this.itemExtraRepository = itemExtraRepository;
         this.productRepository = productRepository;
         this.extraRepository = extraRepository;
+        this.productExtraRepository = productExtraRepository;
         this.fcmService = fcmService;
         this.tabService = tabService;
     }
@@ -146,7 +151,24 @@ public class OrderService {
 
     // ── Cria pedido com itens e extras ────────────────────────────────────────
 
+    @Transactional
     public OrderResponse create(CreateOrderRequest request) {
+        if (request == null || request.getTabId() == null || request.getItems() == null || request.getItems().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Order must contain items and tabId");
+        }
+        String requestId = request.getClientRequestId();
+        if (requestId != null) {
+            if (requestId.isBlank() || requestId.length() > 64) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid clientRequestId");
+            }
+            var existing = repository.findByClientRequestId(requestId);
+            if (existing.isPresent()) {
+                if (!request.getTabId().equals(existing.get().getTab().getId())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "clientRequestId belongs to another tab");
+                }
+                return toDetailedResponse(existing.get());
+            }
+        }
         TabEntity tab = tabRepository.findById(request.getTabId())
                 .orElseThrow(() -> new RuntimeException("Tab not found"));
 
@@ -154,14 +176,34 @@ public class OrderService {
             throw new RuntimeException("Cannot add orders to a closed tab");
         }
 
-        OrderEntity order = new OrderEntity(tab);
-        order = repository.save(order);
-
         List<OrderItemRequest> itemRequests = request.getItems();
-        if (itemRequests != null && !itemRequests.isEmpty()) {
-            for (OrderItemRequest itemReq : itemRequests) {
-                ProductEntity product = productRepository.findById(itemReq.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Product not found: " + itemReq.getProductId()));
+        for (OrderItemRequest itemReq : itemRequests) {
+            if (itemReq == null || itemReq.getProductId() == null || itemReq.getQuantity() == null || itemReq.getQuantity() <= 0) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid product or quantity");
+            }
+            if (itemReq.getObservation() != null && itemReq.getObservation().length() > 140) {
+                throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Observation exceeds 140 characters");
+            }
+            ProductEntity product = productRepository.findById(itemReq.getProductId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Product not found"));
+            if (!Boolean.TRUE.equals(product.getAvailable())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Product unavailable: " + product.getId());
+            }
+            List<Long> extraIds = itemReq.getExtraIds();
+            if (extraIds != null && !extraIds.isEmpty()) {
+                Set<Long> allowed = productExtraRepository.findByProductId(product.getId()).stream()
+                        .map(pe -> pe.getExtra().getId()).collect(Collectors.toSet());
+                if (new HashSet<>(extraIds).size() != extraIds.size() || !allowed.containsAll(extraIds)) {
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid extras for product");
+                }
+            }
+        }
+
+        OrderEntity newOrder = new OrderEntity(tab);
+        newOrder.setClientRequestId(requestId);
+        OrderEntity order = repository.save(newOrder);
+        for (OrderItemRequest itemReq : itemRequests) {
+                ProductEntity product = productRepository.findById(itemReq.getProductId()).orElseThrow();
 
                 OrderItemEntity item = new OrderItemEntity(
                         product, order, itemReq.getQuantity(),
@@ -178,8 +220,6 @@ public class OrderService {
                     }
                 }
             }
-        }
-
         tabService.recalculateTotalValue(tab.getId());
         fcmService.notifyKitchen(order.getId());
         fcmService.notifyWaiter(tab.getId());
