@@ -16,9 +16,11 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository repository;
+    private final AuditService auditService;
 
-    public CategoryService(CategoryRepository repository) {
+    public CategoryService(CategoryRepository repository, AuditService auditService) {
         this.repository = repository;
+        this.auditService = auditService;
     }
 
     public CategoryResponse create(CategoryRequest request) {
@@ -28,7 +30,7 @@ public class CategoryService {
     }
 
     public CategoryResponse update(Long id, CategoryRequest request) {
-        CategoryEntity entity = repository.findById(id)
+        CategoryEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + id));
 
         entity.setName(request.getName());
@@ -39,14 +41,14 @@ public class CategoryService {
     }
 
     public List<CategoryResponse> getAll() {
-        return repository.findAll()
+        return repository.findAllByDeletedAtIsNull()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     public CategoryResponse getById(Long id) {
-        CategoryEntity entity = repository.findById(id)
+        CategoryEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + id));
         return toResponse(entity);
     }
@@ -55,17 +57,20 @@ public class CategoryService {
      * DELETE — retorna 409 se houver produtos associados à categoria
      */
     public void delete(Long id) {
-        repository.findById(id)
+        CategoryEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada: " + id));
 
         if (repository.existsProductByCategoryId(id)) {
             throw new ConflictException("Não é possível remover: categoria possui produtos associados");
         }
 
-        repository.deleteById(id);
+        entity.markDeleted(auditService.currentUserId());
+        repository.save(entity);
     }
 
     private CategoryResponse toResponse(CategoryEntity entity) {
-        return new CategoryResponse(entity.getId(), entity.getName(), entity.getDescription());
+        return new CategoryResponse(entity.getId(), entity.getName(), entity.getDescription(),
+                entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
+                entity.getDeletedAt(), entity.getDeletedBy());
     }
 }

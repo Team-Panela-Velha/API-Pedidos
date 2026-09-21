@@ -35,7 +35,7 @@ public class OrderItemService {
     }
 
     public OrderItemResponse create(OrderItemRequest request) {
-        ProductEntity product = productRepository.findById(request.getProductId())
+        ProductEntity product = productRepository.findByIdAndDeletedAtIsNull(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         OrderEntity order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -51,7 +51,7 @@ public class OrderItemService {
         OrderItemEntity entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("OrderItem not found"));
 
-        ProductEntity product = productRepository.findById(request.getProductId())
+        ProductEntity product = productRepository.findByIdAndDeletedAtIsNull(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         OrderEntity order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -101,12 +101,15 @@ public class OrderItemService {
                 .map(ie -> new ExtraResponse(
                         ie.getExtra().getId(),
                         ie.getExtra().getName(),
-                        ie.getExtra().getPrice()))
+                        ie.getExtra().getPrice(),
+                        ie.getExtra().getCreatedAt(), ie.getExtra().getCreatedBy(),
+                        ie.getExtra().getUpdatedAt(), ie.getExtra().getUpdatedBy(),
+                        ie.getExtra().getDeletedAt(), ie.getExtra().getDeletedBy()))
                 .collect(Collectors.toList());
 
         return new OrderItemResponse(
                 entity.getId(), productId, productName, productImage, orderId,
                 entity.getQuantity(), entity.getObservation(),
-                entity.getUnitPriceSnapshot(), entity.getStatus(), extras);
+                entity.getUnitPriceSnapshot(), entity.getStatus(), extras, entity.getCreatedAt());
     }
 }

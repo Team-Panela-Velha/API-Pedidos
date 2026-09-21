@@ -14,6 +14,8 @@ import com.pedidos.api_pedidos.repository.UserRepository;
 import com.pedidos.api_pedidos.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,28 +26,34 @@ public class UserService {
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final AuditService auditService;
 
     public UserService(UserRepository repository,
                             PasswordEncoder passwordEncoder,
-                            JwtUtil jwtUtil) {
+                            JwtUtil jwtUtil,
+                            AuditService auditService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.auditService = auditService;
     }
 
 
-    public UserResponse register(RegisterRequest request) {
+    public synchronized UserResponse register(RegisterRequest request) {
+        boolean firstUser = repository.countByDeletedAtIsNull() == 0;
+        if (!firstUser && SecurityContextHolder.getContext().getAuthentication() == null) {
+            throw new AccessDeniedException("Somente administradores podem cadastrar usuários");
+        }
+        if (!firstUser && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            throw new AccessDeniedException("Somente administradores podem cadastrar usuários");
+        }
         if (repository.existsByEmail(request.getEmail())) {
             throw new ConflictException("E-mail já cadastrado: " + request.getEmail());
         }
 
-        UserRole role = UserRole.WAITER;
-        if (request.getRole() != null) {
-            try {
-                role = UserRole.valueOf(request.getRole().toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
+        UserRole role = firstUser ? UserRole.ADMIN : request.getRole() == null
+                ? UserRole.WAITER : UserRole.valueOf(request.getRole().toUpperCase());
 
         UserEntity entity = new UserEntity(
                 request.getName(),
@@ -58,10 +66,11 @@ public class UserService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        UserEntity entity = repository.findByEmail(request.getEmail())
+        UserEntity entity = repository.findByEmailAndDeletedAtIsNull(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Credenciais inválidas"));
 
-        if (!passwordEncoder.matches(request.getPassword(), entity.getPasswordHash())) {
+        if (Boolean.FALSE.equals(entity.getActive())
+                || !passwordEncoder.matches(request.getPassword(), entity.getPasswordHash())) {
             throw new UnauthorizedException("Credenciais inválidas");
         }
 
@@ -77,7 +86,7 @@ public class UserService {
 
 
     public List<UserResponse> getAll() {
-        return repository.findAll()
+        return repository.findAllByDeletedAtIsNull()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -87,10 +96,16 @@ public class UserService {
         return toResponse(findOrThrow(id));
     }
 
+    public UserResponse getByEmail(String email) {
+        return toResponse(repository.findByEmailAndDeletedAtIsNull(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado")));
+    }
+
     public UserResponse update(Long id, UserRequest request) {
         UserEntity entity = findOrThrow(id);
         entity.setName(request.getName());
         entity.setEmail(request.getEmail());
+        if (request.getActive() != null) entity.setActive(request.getActive());
 
         if (request.getRole() != null) {
             try {
@@ -103,13 +118,14 @@ public class UserService {
     }
 
     public void delete(Long id) {
-        findOrThrow(id);
-        repository.deleteById(id);
+        UserEntity entity = findOrThrow(id);
+        entity.markDeleted(auditService.currentUserId());
+        repository.save(entity);
     }
 
 
     private UserEntity findOrThrow(Long id) {
-        return repository.findById(id)
+        return repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + id));
     }
 
@@ -118,7 +134,9 @@ public class UserService {
                 entity.getId(),
                 entity.getName(),
                 entity.getEmail(),
-                entity.getRole().name()
+                entity.getRole().name(),
+                entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
+                entity.getDeletedAt(), entity.getDeletedBy()
         );
     }
 }

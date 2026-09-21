@@ -79,7 +79,7 @@ public class TableController {
 
     @PostMapping("/auth")
     public ResponseEntity<TableAuthResponse> tableAuth(@Valid @RequestBody TableAuthRequest request) {
-        TableEntity table = tableRepository.findByCode(request.getCode())
+        TableEntity table = tableRepository.findByCodeAndDeletedAtIsNull(request.getCode())
                 .orElseThrow(() -> new UnauthorizedException("Código de mesa inválido"));
 
         String token = jwtUtil.generateTableToken(table);
@@ -93,7 +93,9 @@ public class TableController {
     public ResponseEntity<Void> tableLogout(Authentication authentication) {
         if (authentication != null && authentication.getCredentials() != null) {
             String token = authentication.getCredentials().toString();
-            tokenBlacklist.add(token);
+            if (jwtUtil.validateToken(token)) {
+                tokenBlacklist.add(token);
+            }
         }
         return ResponseEntity.noContent().build();
     }

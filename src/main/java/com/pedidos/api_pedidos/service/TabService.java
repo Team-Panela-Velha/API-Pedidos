@@ -1,14 +1,17 @@
 package com.pedidos.api_pedidos.service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 
 import com.pedidos.api_pedidos.domain.entity.OrderEntity;
 import com.pedidos.api_pedidos.domain.entity.TabEntity;
 import com.pedidos.api_pedidos.domain.entity.TableEntity;
+import com.pedidos.api_pedidos.domain.enums.TabStatus;
 import com.pedidos.api_pedidos.dto.tab.StartTabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabRequest;
 import com.pedidos.api_pedidos.dto.tab.TabResponse;
@@ -19,6 +22,7 @@ import com.pedidos.api_pedidos.repository.OrderItemRepository;
 import com.pedidos.api_pedidos.repository.OrderRepository;
 import com.pedidos.api_pedidos.repository.TabRepository;
 import com.pedidos.api_pedidos.repository.TableRepository;
+import com.pedidos.api_pedidos.repository.UserRepository;
 
 @Service
 public class TabService {
@@ -28,15 +32,20 @@ public class TabService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final ItemExtraRepository itemExtraRepository;
+    private final UserRepository userRepository;
+    private final AuditorAware<Long> auditorAware;
 
     public TabService(TabRepository repository, TableRepository tableRepository,
                       OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                      ItemExtraRepository itemExtraRepository) {
+                      ItemExtraRepository itemExtraRepository, UserRepository userRepository,
+                      AuditorAware<Long> auditorAware) {
         this.repository = repository;
         this.tableRepository = tableRepository;
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.itemExtraRepository = itemExtraRepository;
+        this.userRepository = userRepository;
+        this.auditorAware = auditorAware;
     }
 
     // ── Endpoints solicitados ─────────────────────────────────────────────────
@@ -46,7 +55,7 @@ public class TabService {
      * Lança exceção se já existir uma comanda aberta para a mesma mesa.
      */
     public TabResponse startTab(StartTabRequest request) {
-        TableEntity table = tableRepository.findByCode(request.getTableCode())
+        TableEntity table = tableRepository.findByCodeAndDeletedAtIsNull(request.getTableCode())
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + request.getTableCode()));
 
         repository.findByTableIdAndClosedFalse(table.getId()).ifPresent(existing -> {
@@ -71,6 +80,11 @@ public class TabService {
         }
 
         entity.setClosed(true);
+        entity.setStatus(TabStatus.CLOSED);
+        entity.setClosedAt(Instant.now());
+        auditorAware.getCurrentAuditor()
+                .flatMap(userRepository::findByIdAndDeletedAtIsNull)
+                .ifPresent(entity::setClosedBy);
         entity = repository.save(entity);
 
         return toResponse(entity);
@@ -79,7 +93,7 @@ public class TabService {
     // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     public TabResponse create(TabRequest request) {
-        TableEntity table = tableRepository.findById(request.getTableId())
+        TableEntity table = tableRepository.findByIdAndDeletedAtIsNull(request.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + request.getTableId()));
 
         TabEntity entity = new TabEntity(request.getTotalValue(), table);
@@ -92,7 +106,7 @@ public class TabService {
         TabEntity entity = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comanda não encontrada: " + id));
 
-        TableEntity table = tableRepository.findById(request.getTableId())
+        TableEntity table = tableRepository.findByIdAndDeletedAtIsNull(request.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + request.getTableId()));
 
         entity.setTotalValue(request.getTotalValue());
@@ -155,6 +169,7 @@ public class TabService {
     private TabResponse toResponse(TabEntity entity) {
         Long tableId = entity.getTable() != null ? entity.getTable().getId() : null;
         String tableCode = entity.getTable() != null ? entity.getTable().getCode() : null;
-        return new TabResponse(entity.getId(), entity.getTotalValue(), entity.getClosed(), tableId, tableCode, entity.getOpenedAt());
+        return new TabResponse(entity.getId(), entity.getTotalValue(), entity.getClosed(), tableId, tableCode,
+                entity.getOpenedAt(), entity.getCreatedAt());
     }
 }

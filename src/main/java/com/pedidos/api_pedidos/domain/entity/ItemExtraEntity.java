@@ -1,6 +1,9 @@
 package com.pedidos.api_pedidos.domain.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "item_extra")
@@ -18,6 +21,10 @@ public class ItemExtraEntity {
     @JoinColumn(name = "extra_id", nullable = false)
     private ExtraEntity extra;
 
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
     public ItemExtraEntity() {}
 
     public ItemExtraEntity(OrderItemEntity orderItem, ExtraEntity extra) {
@@ -33,4 +40,6 @@ public class ItemExtraEntity {
 
     public ExtraEntity getExtra() { return extra; }
     public void setExtra(ExtraEntity extra) { this.extra = extra; }
+
+    public Instant getCreatedAt() { return createdAt; }
 }

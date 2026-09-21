@@ -24,10 +24,12 @@ public class TableService {
 
     private final TableRepository repository;
     private final TabRepository tabRepository;
+    private final AuditService auditService;
 
-    public TableService(TableRepository repository, TabRepository tabRepository) {
+    public TableService(TableRepository repository, TabRepository tabRepository, AuditService auditService) {
         this.repository = repository;
         this.tabRepository = tabRepository;
+        this.auditService = auditService;
     }
 
     /**
@@ -37,7 +39,7 @@ public class TableService {
         TableEntity entity = new TableEntity(generateUniqueCode());
         entity = repository.save(entity);
 
-        return new TableResponse(entity.getId(), entity.getCode());
+        return toResponse(entity);
     }
 
     /**
@@ -45,45 +47,46 @@ public class TableService {
      * como `code` é o único campo, esta operação apenas valida a existência da mesa.
      */
     public TableResponse update(Long id, TableRequest request) {
-        TableEntity entity = repository.findById(id)
+        TableEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + id));
 
-        return new TableResponse(entity.getId(), entity.getCode());
+        return toResponse(entity);
     }
 
     public List<TableResponse> getAll() {
-        return repository.findAll()
+        return repository.findAllByDeletedAtIsNull()
                 .stream()
-                .map(e -> new TableResponse(e.getId(), e.getCode()))
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     public TableResponse getById(Long id) {
-        TableEntity entity = repository.findById(id)
+        TableEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + id));
 
-        return new TableResponse(entity.getId(), entity.getCode());
+        return toResponse(entity);
     }
 
     public TableResponse getByCode(String code) {
-        TableEntity entity = repository.findByCode(code)
+        TableEntity entity = repository.findByCodeAndDeletedAtIsNull(code)
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + code));
 
-        return new TableResponse(entity.getId(), entity.getCode());
+        return toResponse(entity);
     }
 
     /**
      * Remove a mesa. 409 se houver comanda aberta para a mesa.
      */
     public void delete(Long id) {
-        TableEntity entity = repository.findById(id)
+        TableEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + id));
 
         tabRepository.findByTableIdAndClosedFalse(entity.getId()).ifPresent(tab -> {
             throw new ConflictException("Não é possível remover: a mesa possui uma comanda aberta (id=" + tab.getId() + ")");
         });
 
-        repository.deleteById(id);
+        entity.markDeleted(auditService.currentUserId());
+        repository.save(entity);
     }
 
     /**
@@ -92,7 +95,7 @@ public class TableService {
      * pois o logout efetivo é feito invalidando o token JWT (blacklist).
      */
     public GenerateCodesResponse generateCodes(Long id) {
-        TableEntity entity = repository.findById(id)
+        TableEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + id));
 
         String loginCode = generateUniqueCode();
@@ -109,7 +112,7 @@ public class TableService {
         String code;
         do {
             code = generateCode();
-        } while (repository.findByCode(code).isPresent());
+        } while (repository.existsByCode(code));
         return code;
     }
 
@@ -119,5 +122,11 @@ public class TableService {
             sb.append(CODE_ALPHABET.charAt(RANDOM.nextInt(CODE_ALPHABET.length())));
         }
         return sb.toString();
+    }
+
+    private TableResponse toResponse(TableEntity entity) {
+        return new TableResponse(entity.getId(), entity.getCode(),
+                entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
+                entity.getDeletedAt(), entity.getDeletedBy());
     }
 }

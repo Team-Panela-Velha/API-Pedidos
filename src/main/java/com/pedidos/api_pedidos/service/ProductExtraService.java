@@ -34,14 +34,14 @@ public class ProductExtraService {
      * Retorna todos os extras disponíveis para um produto específico.
      */
     public List<ExtraResponse> getProductExtras(Long productId) {
-        productRepository.findById(productId)
+        productRepository.findByIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        return repository.findByProductId(productId)
+        return repository.findActiveByProductId(productId)
                 .stream()
                 .map(pe -> {
                     ExtraEntity extra = pe.getExtra();
-                    return new ExtraResponse(extra.getId(), extra.getName(), extra.getPrice());
+                    return toExtraResponse(extra);
                 })
                 .collect(Collectors.toList());
     }
@@ -49,9 +49,9 @@ public class ProductExtraService {
     // ── CRUD padrão ───────────────────────────────────────────────────────────
 
     public ProductExtraResponse create(ProductExtraRequest request) {
-        ProductEntity product = productRepository.findById(request.getProductId())
+        ProductEntity product = productRepository.findByIdAndDeletedAtIsNull(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        ExtraEntity extra = extraRepository.findById(request.getExtraId())
+        ExtraEntity extra = extraRepository.findByIdAndDeletedAtIsNull(request.getExtraId())
                 .orElseThrow(() -> new RuntimeException("Extra not found"));
 
         ProductExtraEntity entity = new ProductExtraEntity(product, extra);
@@ -61,14 +61,14 @@ public class ProductExtraService {
     }
 
     public List<ProductExtraResponse> getAll() {
-        return repository.findAll()
+        return repository.findAllActive()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     public List<ProductExtraResponse> getByProductId(Long productId) {
-        return repository.findByProductId(productId)
+        return repository.findActiveByProductId(productId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -87,6 +87,12 @@ public class ProductExtraService {
     private ProductExtraResponse toResponse(ProductExtraEntity entity) {
         Long productId = entity.getProduct() != null ? entity.getProduct().getId() : null;
         Long extraId = entity.getExtra() != null ? entity.getExtra().getId() : null;
-        return new ProductExtraResponse(entity.getId(), productId, extraId);
+        return new ProductExtraResponse(entity.getId(), productId, extraId, entity.getCreatedAt());
+    }
+
+    private ExtraResponse toExtraResponse(ExtraEntity extra) {
+        return new ExtraResponse(extra.getId(), extra.getName(), extra.getPrice(),
+                extra.getCreatedAt(), extra.getCreatedBy(), extra.getUpdatedAt(), extra.getUpdatedBy(),
+                extra.getDeletedAt(), extra.getDeletedBy());
     }
 }
