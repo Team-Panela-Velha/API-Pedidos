@@ -56,6 +56,7 @@ class SecurityRoutesTests {
         mvc.perform(delete("/products/1")).andExpect(status().isUnauthorized());
         mvc.perform(get("/users")).andExpect(status().isUnauthorized());
         mvc.perform(get("/auth/me")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/dashboard")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -65,12 +66,23 @@ class SecurityRoutesTests {
         String token = jwt.generateTableToken(table);
         mvc.perform(get("/users").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
+        mvc.perform(get("/dashboard").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "WAITER")
     void authenticatedStaffCanReadAdministrativeCatalog() throws Exception {
         mvc.perform(get("/categories")).andExpect(status().isOk());
+        mvc.perform(get("/dashboard")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    void managerCanReadDashboard() throws Exception {
+        mvc.perform(get("/dashboard").param("from", "2040-01-01").param("to", "2040-01-01"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.period.timezone").value("America/Sao_Paulo"));
     }
 
     @Test

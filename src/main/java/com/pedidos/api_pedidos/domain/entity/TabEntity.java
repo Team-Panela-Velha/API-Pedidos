@@ -8,7 +8,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "tab")
+@Table(name = "tab", indexes = {
+        @Index(name = "idx_tab_closed_at", columnList = "closed_at"),
+        @Index(name = "idx_tab_opened_at", columnList = "opened_at")
+})
 public class TabEntity {
 
     @Id

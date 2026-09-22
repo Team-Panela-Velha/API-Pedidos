@@ -41,6 +41,7 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll()
                 .requestMatchers("/field/**").permitAll()
+                .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/categories/**", "/products/**", "/extras/**", "/product-extras/**", "/tables/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers(HttpMethod.PUT, "/categories/**", "/products/**", "/extras/**", "/product-extras/**", "/tables/**").hasAnyRole("ADMIN", "MANAGER")

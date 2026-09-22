@@ -8,7 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_orders_created_at", columnList = "created_at"),
+        @Index(name = "idx_orders_tab_id", columnList = "tab_id")
+})
 public class OrderEntity {
 
     @Id
