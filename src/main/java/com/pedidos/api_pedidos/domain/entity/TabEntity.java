@@ -8,7 +8,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "tab")
+@Table(name = "tab", indexes = {
+        @Index(name = "idx_tab_closed_at", columnList = "closed_at"),
+        @Index(name = "idx_tab_opened_at", columnList = "opened_at")
+})
 public class TabEntity {
 
     @Id
@@ -25,6 +28,10 @@ public class TabEntity {
     @CreationTimestamp
     @Column(name = "opened_at", nullable = false, updatable = false)
     private Instant openedAt;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
 
     @Column(name = "closed_at")
     private Instant closedAt;
@@ -60,6 +67,8 @@ public class TabEntity {
 
     public Instant getOpenedAt() { return openedAt; }
     public void setOpenedAt(Instant openedAt) { this.openedAt = openedAt; }
+
+    public Instant getCreatedAt() { return createdAt; }
 
     public Instant getClosedAt() { return closedAt; }
     public void setClosedAt(Instant closedAt) { this.closedAt = closedAt; }

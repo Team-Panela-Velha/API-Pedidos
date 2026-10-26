@@ -14,16 +14,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import com.pedidos.api_pedidos.repository.UserRepository;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final TokenBlacklist blacklist;
+    private final UserRepository users;
 
-    public JwtFilter(JwtUtil jwtUtil, TokenBlacklist blacklist) {
+    public JwtFilter(JwtUtil jwtUtil, TokenBlacklist blacklist, UserRepository users) {
         this.jwtUtil = jwtUtil;
         this.blacklist = blacklist;
+        this.users = users;
     }
 
     @Override
@@ -43,13 +46,20 @@ public class JwtFilter extends OncePerRequestFilter {
                 String subject = claims.getSubject();
                 String role = claims.get("role", String.class);
 
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        subject,
-                        token, // credencial = token raw (usado no logout para extrair)
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                if ("TABLE".equals(role)) {
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            subject, token, List.of(new SimpleGrantedAuthority("ROLE_TABLE")));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } else if (claims.get("id", Number.class) != null) {
+                    Long id = claims.get("id", Number.class).longValue();
+                    users.findByIdAndDeletedAtIsNull(id).filter(user -> !Boolean.FALSE.equals(user.getActive()))
+                            .filter(user -> user.getEmail().equals(subject))
+                            .ifPresent(user -> {
+                                StaffUserDetails staff = StaffUserDetails.from(user);
+                                SecurityContextHolder.getContext().setAuthentication(
+                                        new UsernamePasswordAuthenticationToken(staff, token, staff.getAuthorities()));
+                            });
+                }
             }
         }
 

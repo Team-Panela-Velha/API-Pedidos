@@ -13,6 +13,7 @@ public class UserRequest {
     private String email;
 
     private String role;
+    private Boolean active;
 
     public UserRequest() {}
 
@@ -24,4 +25,6 @@ public class UserRequest {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 }

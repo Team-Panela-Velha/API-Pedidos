@@ -23,21 +23,24 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductExtraRepository productExtraRepository;
+    private final AuditService auditService;
 
     public ProductService(ProductRepository repository,
                           CategoryRepository categoryRepository,
                           OrderItemRepository orderItemRepository,
-                          ProductExtraRepository productExtraRepository) {
+                          ProductExtraRepository productExtraRepository,
+                          AuditService auditService) {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
         this.orderItemRepository = orderItemRepository;
         this.productExtraRepository = productExtraRepository;
+        this.auditService = auditService;
     }
 
     public ProductResponse create(ProductRequest request) {
         validatePrice(request.getPrice());
 
-        CategoryEntity category = categoryRepository.findById(request.getCategoryId())
+        CategoryEntity category = categoryRepository.findByIdAndDeletedAtIsNull(request.getCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Category not found"));
 
         ProductEntity entity = new ProductEntity(
@@ -51,10 +54,10 @@ public class ProductService {
     public ProductResponse update(Long id, ProductRequest request) {
         validatePrice(request.getPrice());
 
-        ProductEntity entity = repository.findById(id)
+        ProductEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
-        CategoryEntity category = categoryRepository.findById(request.getCategoryId())
+        CategoryEntity category = categoryRepository.findByIdAndDeletedAtIsNull(request.getCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Category not found"));
 
         entity.setName(request.getName());
@@ -69,7 +72,7 @@ public class ProductService {
     }
 
     public List<ProductResponse> getAll(Boolean available) {
-        List<ProductEntity> products = repository.findAll();
+        List<ProductEntity> products = repository.findAllByDeletedAtIsNull();
 
         if (available != null) {
             products = products.stream()
@@ -83,7 +86,7 @@ public class ProductService {
     }
 
     public ProductResponse getById(Long id) {
-        ProductEntity entity = repository.findById(id)
+        ProductEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         return toResponseWithExtras(entity);
     }
@@ -93,11 +96,11 @@ public class ProductService {
      * 404 se a categoria não existir. Aceita o filtro opcional ?available=true.
      */
     public List<ProductResponse> getByCategory(Long categoryId, Boolean available) {
-        if (!categoryRepository.existsById(categoryId)) {
+        if (!categoryRepository.existsByIdAndDeletedAtIsNull(categoryId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
         }
 
-        List<ProductEntity> products = repository.findByCategoryId(categoryId);
+        List<ProductEntity> products = repository.findByCategoryIdAndDeletedAtIsNull(categoryId);
 
         if (available != null) {
             products = products.stream()
@@ -123,6 +126,9 @@ public class ProductService {
     }
 
     public void delete(Long id) {
+        ProductEntity entity = repository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
         // Check if product is present in any order_item of an open tab
         List<com.pedidos.api_pedidos.domain.entity.OrderItemEntity> items = orderItemRepository.findByProductId(id);
         boolean inOpenOrder = items.stream().anyMatch(item ->
@@ -132,7 +138,8 @@ public class ProductService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot delete product that exists in open orders");
         }
 
-        repository.deleteById(id);
+        entity.markDeleted(auditService.currentUserId());
+        repository.save(entity);
     }
 
     private void validatePrice(java.math.BigDecimal price) {
@@ -145,18 +152,25 @@ public class ProductService {
         Long categoryId = entity.getCategory() != null ? entity.getCategory().getId() : null;
         return new ProductResponse(
                 entity.getId(), entity.getName(), entity.getPrice(),
-                entity.getDescription(), entity.getImage(), categoryId, entity.getAvailable());
+                entity.getDescription(), entity.getImage(), categoryId, entity.getAvailable(), null,
+                entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
+                entity.getDeletedAt(), entity.getDeletedBy());
     }
 
     private ProductResponse toResponseWithExtras(ProductEntity entity) {
         Long categoryId = entity.getCategory() != null ? entity.getCategory().getId() : null;
-        java.util.List<com.pedidos.api_pedidos.dto.extra.ExtraResponse> extras = productExtraRepository.findByProductId(entity.getId())
+        java.util.List<com.pedidos.api_pedidos.dto.extra.ExtraResponse> extras = productExtraRepository.findActiveByProductId(entity.getId())
             .stream()
             .map(pe -> pe.getExtra())
-            .map(e -> new com.pedidos.api_pedidos.dto.extra.ExtraResponse(e.getId(), e.getName(), e.getPrice()))
+            .map(e -> new com.pedidos.api_pedidos.dto.extra.ExtraResponse(
+                    e.getId(), e.getName(), e.getPrice(),
+                    e.getCreatedAt(), e.getCreatedBy(), e.getUpdatedAt(), e.getUpdatedBy(),
+                    e.getDeletedAt(), e.getDeletedBy()))
             .collect(Collectors.toList());
         return new ProductResponse(
                 entity.getId(), entity.getName(), entity.getPrice(),
-                entity.getDescription(), entity.getImage(), categoryId, entity.getAvailable(), extras);
+                entity.getDescription(), entity.getImage(), categoryId, entity.getAvailable(), extras,
+                entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
+                entity.getDeletedAt(), entity.getDeletedBy());
     }
 }

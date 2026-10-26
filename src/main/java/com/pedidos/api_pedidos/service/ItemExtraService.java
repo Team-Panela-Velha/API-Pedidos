@@ -32,7 +32,7 @@ public class ItemExtraService {
     public ItemExtraResponse create(ItemExtraRequest request) {
         OrderItemEntity orderItem = orderItemRepository.findById(request.getOrderItemId())
                 .orElseThrow(() -> new RuntimeException("OrderItem not found"));
-        ExtraEntity extra = extraRepository.findById(request.getExtraId())
+        ExtraEntity extra = extraRepository.findByIdAndDeletedAtIsNull(request.getExtraId())
                 .orElseThrow(() -> new RuntimeException("Extra not found"));
 
         ItemExtraEntity entity = new ItemExtraEntity(orderItem, extra);
@@ -68,6 +68,6 @@ public class ItemExtraService {
     private ItemExtraResponse toResponse(ItemExtraEntity entity) {
         Long orderItemId = entity.getOrderItem() != null ? entity.getOrderItem().getId() : null;
         Long extraId = entity.getExtra() != null ? entity.getExtra().getId() : null;
-        return new ItemExtraResponse(entity.getId(), orderItemId, extraId);
+        return new ItemExtraResponse(entity.getId(), orderItemId, extraId, entity.getCreatedAt());
     }
 }

@@ -83,10 +83,12 @@ public class JwtUtil {
     }
 
     public Long extractId(String token) {
-        return extractClaims(token).get("id", Long.class);
+        Number id = extractClaims(token).get("id", Number.class);
+        return id == null ? null : id.longValue();
     }
 
     public Long extractTableId(String token) {
-        return extractClaims(token).get("tableId", Long.class);
+        Number tableId = extractClaims(token).get("tableId", Number.class);
+        return tableId == null ? null : tableId.longValue();
     }
 }

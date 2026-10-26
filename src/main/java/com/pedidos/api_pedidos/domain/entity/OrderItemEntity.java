@@ -19,7 +19,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "order_item")
+@Table(name = "order_item", indexes = {
+        @jakarta.persistence.Index(name = "idx_order_item_order_id", columnList = "order_id"),
+        @jakarta.persistence.Index(name = "idx_order_item_product_id", columnList = "product_id")
+})
 public class OrderItemEntity {
 
     @Id

@@ -32,12 +32,16 @@ class OrderFlowTests {
         OrderItemEntity item = new OrderItemEntity(null, order, (short) 2, null, new BigDecimal("10.00"));
         item.setId(3L);
         ExtraEntity extra = new ExtraEntity("Abacate", new BigDecimal("3.00"));
+        ItemExtraEntity selectedExtra = new ItemExtraEntity(item, extra);
+        extra.setPrice(new BigDecimal("9.00"));
         when(tabs.findById(1L)).thenReturn(Optional.of(tab));
         when(orders.findByTabId(1L)).thenReturn(List.of(order));
         when(items.findByOrderId(2L)).thenReturn(List.of(item));
-        when(itemExtras.findByOrderItemId(3L)).thenReturn(List.of(new ItemExtraEntity(item, extra)));
+        when(itemExtras.findByOrderItemId(3L)).thenReturn(List.of(selectedExtra));
 
-        new TabService(tabs, tables, orders, items, itemExtras).recalculateTotalValue(1L);
+        new TabService(tabs, tables, orders, items, itemExtras,
+                mock(UserRepository.class), mock(org.springframework.data.domain.AuditorAware.class))
+                .recalculateTotalValue(1L);
 
         assertEquals(new BigDecimal("26.00"), tab.getTotalValue());
         verify(tabs).save(tab);
@@ -58,7 +62,7 @@ class OrderFlowTests {
         when(tabs.findById(1L)).thenReturn(Optional.of(tab));
         ProductEntity product = new ProductEntity("Poke", BigDecimal.TEN, null, null, null);
         product.setAvailable(false);
-        when(products.findById(2L)).thenReturn(Optional.of(product));
+        when(products.findByIdAndDeletedAtIsNull(2L)).thenReturn(Optional.of(product));
         OrderItemRequest item = new OrderItemRequest();
         item.setProductId(2L);
         item.setQuantity((short) 1);

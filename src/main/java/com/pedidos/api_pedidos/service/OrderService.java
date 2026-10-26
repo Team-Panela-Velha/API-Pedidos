@@ -184,14 +184,14 @@ public class OrderService {
             if (itemReq.getObservation() != null && itemReq.getObservation().length() > 140) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Observation exceeds 140 characters");
             }
-            ProductEntity product = productRepository.findById(itemReq.getProductId())
+            ProductEntity product = productRepository.findByIdAndDeletedAtIsNull(itemReq.getProductId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Product not found"));
             if (!Boolean.TRUE.equals(product.getAvailable())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Product unavailable: " + product.getId());
             }
             List<Long> extraIds = itemReq.getExtraIds();
             if (extraIds != null && !extraIds.isEmpty()) {
-                Set<Long> allowed = productExtraRepository.findByProductId(product.getId()).stream()
+                Set<Long> allowed = productExtraRepository.findActiveByProductId(product.getId()).stream()
                         .map(pe -> pe.getExtra().getId()).collect(Collectors.toSet());
                 if (new HashSet<>(extraIds).size() != extraIds.size() || !allowed.containsAll(extraIds)) {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid extras for product");
@@ -203,7 +203,7 @@ public class OrderService {
         newOrder.setClientRequestId(requestId);
         OrderEntity order = repository.save(newOrder);
         for (OrderItemRequest itemReq : itemRequests) {
-                ProductEntity product = productRepository.findById(itemReq.getProductId()).orElseThrow();
+                ProductEntity product = productRepository.findByIdAndDeletedAtIsNull(itemReq.getProductId()).orElseThrow();
 
                 OrderItemEntity item = new OrderItemEntity(
                         product, order, itemReq.getQuantity(),
@@ -213,7 +213,7 @@ public class OrderService {
                 List<Long> extraIds = itemReq.getExtraIds();
                 if (extraIds != null && !extraIds.isEmpty()) {
                     for (Long extraId : extraIds) {
-                        ExtraEntity extra = extraRepository.findById(extraId)
+                        ExtraEntity extra = extraRepository.findByIdAndDeletedAtIsNull(extraId)
                                 .orElseThrow(() -> new RuntimeException("Extra not found: " + extraId));
                         ItemExtraEntity itemExtra = new ItemExtraEntity(item, extra);
                         itemExtraRepository.save(itemExtra);
@@ -284,7 +284,10 @@ public class OrderService {
                             .map(ie -> new ExtraResponse(
                                     ie.getExtra().getId(),
                                     ie.getExtra().getName(),
-                                    ie.getExtra().getPrice()))
+                                    ie.getExtra().getPrice(),
+                                    ie.getExtra().getCreatedAt(), ie.getExtra().getCreatedBy(),
+                                    ie.getExtra().getUpdatedAt(), ie.getExtra().getUpdatedBy(),
+                                    ie.getExtra().getDeletedAt(), ie.getExtra().getDeletedBy()))
                             .collect(Collectors.toList());
 
                     String productName = item.getProduct() != null ? item.getProduct().getName() : null;
@@ -295,11 +298,11 @@ public class OrderService {
                             item.getId(), productId, productName, productImage,
                             order.getId(), item.getQuantity(),
                             item.getObservation(), item.getUnitPriceSnapshot(),
-                            item.getStatus(), extras);
+                            item.getStatus(), extras, item.getCreatedAt());
                 })
                 .collect(Collectors.toList());
 
         Long tabId = order.getTab() != null ? order.getTab().getId() : null;
-        return new OrderResponse(order.getId(), tabId, items);
+        return new OrderResponse(order.getId(), tabId, items, order.getCreatedAt());
     }
 }
