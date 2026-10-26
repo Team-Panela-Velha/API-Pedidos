@@ -1,18 +1,44 @@
 package com.pedidos.api_pedidos.domain.entity;
 
+import com.pedidos.api_pedidos.domain.enums.TabStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
-@Table(name = "tab")
+@Table(name = "tab", indexes = {
+        @Index(name = "idx_tab_closed_at", columnList = "closed_at"),
+        @Index(name = "idx_tab_opened_at", columnList = "opened_at")
+})
 public class TabEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "total_value", nullable = false)
+    @Column(name = "total_value", nullable = false, precision = 8, scale = 2)
     private BigDecimal totalValue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TabStatus status = TabStatus.OPEN;
+
+    @CreationTimestamp
+    @Column(name = "opened_at", nullable = false, updatable = false)
+    private Instant openedAt;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "closed_by_id")
+    private UserEntity closedBy;
 
     @Column(nullable = false)
     private Boolean closed = false;
@@ -27,6 +53,7 @@ public class TabEntity {
         this.totalValue = totalValue;
         this.table = table;
         this.closed = false;
+        this.status = TabStatus.OPEN;
     }
 
     public Long getId() { return id; }
@@ -34,6 +61,20 @@ public class TabEntity {
 
     public BigDecimal getTotalValue() { return totalValue; }
     public void setTotalValue(BigDecimal totalValue) { this.totalValue = totalValue; }
+
+    public TabStatus getStatus() { return status; }
+    public void setStatus(TabStatus status) { this.status = status; }
+
+    public Instant getOpenedAt() { return openedAt; }
+    public void setOpenedAt(Instant openedAt) { this.openedAt = openedAt; }
+
+    public Instant getCreatedAt() { return createdAt; }
+
+    public Instant getClosedAt() { return closedAt; }
+    public void setClosedAt(Instant closedAt) { this.closedAt = closedAt; }
+
+    public UserEntity getClosedBy() { return closedBy; }
+    public void setClosedBy(UserEntity closedBy) { this.closedBy = closedBy; }
 
     public Boolean getClosed() { return closed; }
     public void setClosed(Boolean closed) { this.closed = closed; }

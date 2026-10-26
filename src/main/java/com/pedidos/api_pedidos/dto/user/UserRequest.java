@@ -1,9 +1,9 @@
-package com.pedidos.api_pedidos.dto.staff_user;
+package com.pedidos.api_pedidos.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public class StaffUserRequest {
+public class UserRequest {
 
     @NotBlank(message = "Nome é obrigatório")
     private String name;
@@ -13,8 +13,9 @@ public class StaffUserRequest {
     private String email;
 
     private String role;
+    private Boolean active;
 
-    public StaffUserRequest() {}
+    public UserRequest() {}
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -24,4 +25,6 @@ public class StaffUserRequest {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 }

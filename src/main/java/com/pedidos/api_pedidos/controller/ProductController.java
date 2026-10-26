@@ -28,9 +28,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> getAll(@RequestParam(value = "available", required = false) Boolean available,
-                                        @RequestParam(value = "restrictions", required = false) List<com.pedidos.api_pedidos.domain.enums.DietaryRestriction> restrictions) {
-        return service.getAll(available, restrictions);
+    public List<ProductResponse> getAll(@RequestParam(value = "available", required = false) Boolean available) {
+        return service.getAll(available);
     }
 
     // Função nova 1 — produtos por categoria
@@ -40,10 +39,11 @@ public class ProductController {
         return service.getByCategory(categoryId, available);
     }
 
-    // Função nova 2 — busca (search bar)
     @GetMapping("/search")
-    public List<ProductResponse> search(@RequestParam(value = "q", required = false) String q) {
-        return service.search(q);
+    public List<ProductResponse> search(@RequestParam(value = "keyword", required = false) String keyword,
+                                        @RequestParam(value = "categoryId", required = false) Long categoryId,
+                                        @RequestParam(value = "available", required = false) Boolean available) {
+        return service.search(keyword, categoryId, available);
     }
 
     @GetMapping("/{id}")
