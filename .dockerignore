@@ -1,0 +1,8 @@
+.git
+.vscode
+.mvn
+target
+tests
+nginx
+*.log
+.env
