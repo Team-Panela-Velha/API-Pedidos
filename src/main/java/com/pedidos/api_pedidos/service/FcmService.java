@@ -18,7 +18,6 @@ public class FcmService {
         //     .setTopic("kitchen")
         //     .putData("orderId", orderId.toString())
         //     .build());
-        System.out.println("[FCM] Kitchen notification: New order created with ID " + orderId);
     }
 
     /**
@@ -34,7 +33,6 @@ public class FcmService {
         //     .putData("status", status.toString())
         //     .putData("tableId", tableId.toString())
         //     .build());
-        System.out.println("[FCM] Table " + tableId + " notification: Order status changed to " + status);
     }
 
     /**
@@ -50,6 +48,5 @@ public class FcmService {
         //     .putData("tabId", tabId.toString())
         //     .putData("action", "order_updated")
         //     .build());
-        System.out.println("[FCM] Waiter notification: Tab " + tabId + " activity updated");
     }
 }
