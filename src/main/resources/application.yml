@@ -51,3 +51,8 @@ app:
     expiration: 86400000
   cors:
     allowed-origins: "*"
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    org.springframework.ai: DEBUG
