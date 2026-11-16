@@ -13,10 +13,9 @@ import com.pedidos.api_pedidos.domain.enums.UserRole;
 import com.pedidos.api_pedidos.repository.CategoryRepository;
 import com.pedidos.api_pedidos.repository.UserRepository;
 import com.pedidos.api_pedidos.security.JwtUtil;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 
 import java.util.UUID;
@@ -24,6 +23,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -71,24 +71,21 @@ class SecurityRoutesTests {
     }
 
     @Test
-    @WithMockUser(roles = "WAITER")
     void authenticatedStaffCanReadAdministrativeCatalog() throws Exception {
-        mvc.perform(get("/categories")).andExpect(status().isOk());
-        mvc.perform(get("/dashboard")).andExpect(status().isForbidden());
+        mvc.perform(get("/categories").with(user("test").roles("WAITER"))).andExpect(status().isOk());
+        mvc.perform(get("/dashboard").with(user("test").roles("WAITER"))).andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(roles = "MANAGER")
     void managerCanReadDashboard() throws Exception {
-        mvc.perform(get("/dashboard").param("from", "2040-01-01").param("to", "2040-01-01"))
+        mvc.perform(get("/dashboard").with(user("test").roles("MANAGER")).param("from", "2040-01-01").param("to", "2040-01-01"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.period.timezone").value("America/Sao_Paulo"));
     }
 
     @Test
-    @WithMockUser(roles = "MANAGER")
     void insufficientRoleReturnsForbidden() throws Exception {
-        mvc.perform(get("/users")).andExpect(status().isForbidden());
+        mvc.perform(get("/users").with(user("test").roles("MANAGER"))).andExpect(status().isForbidden());
     }
 
     @Test

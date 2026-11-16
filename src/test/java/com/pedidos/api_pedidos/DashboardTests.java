@@ -50,10 +50,10 @@ class DashboardTests {
                 values (?, ?, 2, ?, 'RECEIVED', ?)
                 """, productId, orderId, new BigDecimal("10.00"),
                 Timestamp.from(Instant.parse("2040-01-02T01:30:00Z")));
-        insert("insert into item_extra(order_item_id, extra_id, unit_price_snapshot) values (?, ?, ?)",
+        insert("insert into item_extra(order_item_id, extra_id, unit_price_snapshot, created_at) values (?, ?, ?, now())",
                 itemId, extraId, new BigDecimal("3.00"));
         long legacyExtraId = insert("insert into extra(name, price) values (?, ?)", "Gergelim", new BigDecimal("2.00"));
-        insert("insert into item_extra(order_item_id, extra_id) values (?, ?)", itemId, legacyExtraId);
+        insert("insert into item_extra(order_item_id, extra_id, created_at) values (?, ?, now())", itemId, legacyExtraId);
 
         DashboardResponse jan1 = dashboard.get(LocalDate.parse("2040-01-01"), LocalDate.parse("2040-01-01"));
         assertThat(jan1.orders().total()).isEqualTo(1);
