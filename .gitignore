@@ -41,3 +41,4 @@ src/main/resources/application.yml
 temp/
 docs/
 *.ps1
+CLAUDE.md

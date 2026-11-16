@@ -1,0 +1,19 @@
+# MODELO de configuração local com segredos. NÃO coloque valores reais aqui.
+#
+# Passos:
+#   1. Copie este arquivo para  application-local.yml  (esse sim fica no .gitignore)
+#   2. Preencha com os valores reais do Supabase / um JWT secret forte
+#   3. Rode a aplicação com o profile "local":
+#        ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+#        java -jar target/api_pedidos-0.0.1-SNAPSHOT.jar --spring.profiles.active=local
+#
+# Alternativa (sem profile): definir as variáveis de ambiente
+#   DB_USERNAME, DB_PASSWORD, JWT_SECRET  (e opcionalmente DB_URL)
+spring:
+  datasource:
+    username: postgres.SEU_PROJECT_REF
+    password: "SUA_SENHA_DO_SUPABASE"
+
+app:
+  jwt:
+    secret: "CHAVE_FORTE_E_ALEATORIA_COM_32_OU_MAIS_CARACTERES"

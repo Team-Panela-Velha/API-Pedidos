@@ -4,9 +4,11 @@ package com.pedidos.api_pedidos.config;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(prefix = "spring.ai.mcp.client", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class McpDiagnostics implements ApplicationRunner {
 
     private final SyncMcpToolCallbackProvider mcpTools;
