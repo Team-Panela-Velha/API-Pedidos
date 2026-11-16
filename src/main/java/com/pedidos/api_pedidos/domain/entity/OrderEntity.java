@@ -10,7 +10,8 @@ import java.time.Instant;
 @Entity
 @Table(name = "orders", indexes = {
         @Index(name = "idx_orders_created_at", columnList = "created_at"),
-        @Index(name = "idx_orders_tab_id", columnList = "tab_id")
+        @Index(name = "idx_orders_tab_id", columnList = "tab_id"),
+        @Index(name = "idx_orders_delivered_created_at", columnList = "delivered, created_at")
 })
 public class OrderEntity {
 
@@ -37,6 +38,12 @@ public class OrderEntity {
     @Column(name = "status_updated_at", nullable = false)
     private Instant statusUpdatedAt;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean delivered = false;
+
+    @Column(name = "delivered_at")
+    private Instant deliveredAt;
+
     public OrderEntity() {}
 
     public OrderEntity(TabEntity tab) {
@@ -60,4 +67,8 @@ public class OrderEntity {
 
     public Instant getStatusUpdatedAt() { return statusUpdatedAt; }
     public void setStatusUpdatedAt(Instant statusUpdatedAt) { this.statusUpdatedAt = statusUpdatedAt; }
+    public Boolean getDelivered() { return delivered != null && delivered; }
+    public void setDelivered(Boolean delivered) { this.delivered = delivered; }
+    public Instant getDeliveredAt() { return deliveredAt; }
+    public void setDeliveredAt(Instant deliveredAt) { this.deliveredAt = deliveredAt; }
 }

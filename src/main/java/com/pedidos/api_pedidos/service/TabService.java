@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pedidos.api_pedidos.domain.entity.OrderEntity;
 import com.pedidos.api_pedidos.domain.entity.TabEntity;
@@ -71,12 +72,18 @@ public class TabService {
     /**
      * Encerra a comanda. Após fechada, não pode receber mais pedidos.
      */
+    @Transactional
     public TabResponse closeTab(Long id) {
-        TabEntity entity = repository.findById(id)
+        TabEntity entity = repository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Comanda não encontrada: " + id));
 
         if (Boolean.TRUE.equals(entity.getClosed())) {
             throw new ConflictException("A comanda já está fechada");
+        }
+
+        long pendingOrders = orderRepository.countByTabIdAndDeliveredFalse(id);
+        if (pendingOrders > 0) {
+            throw new ConflictException("A comanda possui " + pendingOrders + " pedido(s) não entregue(s)");
         }
 
         entity.setClosed(true);

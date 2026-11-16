@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.pedidos.api_pedidos.domain.entity.ExtraEntity;
 import com.pedidos.api_pedidos.domain.entity.ItemExtraEntity;
@@ -75,6 +77,25 @@ public class OrderService {
                 .stream()
                 .map(this::toDetailedResponse)
                 .collect(Collectors.toList());
+    }
+
+    public Page<OrderResponse> getKitchenOrders(Boolean delivered, Pageable pageable) {
+        return (delivered == null ? repository.findAll(pageable) : repository.findByDelivered(delivered, pageable))
+                .map(this::toDetailedResponse);
+    }
+
+    @Transactional
+    public OrderResponse markDelivered(Long id) {
+        OrderEntity order = repository.findByIdForUpdate(id)
+                .orElseThrow(() -> new com.pedidos.api_pedidos.exception.ResourceNotFoundException("Pedido não encontrado: " + id));
+        tabRepository.findByIdForUpdate(order.getTab().getId())
+                .orElseThrow(() -> new com.pedidos.api_pedidos.exception.ResourceNotFoundException("Comanda não encontrada"));
+        if (!order.getDelivered()) {
+            order.setDelivered(true);
+            order.setDeliveredAt(java.time.Instant.now());
+            order = repository.save(order);
+        }
+        return toDetailedResponse(order);
     }
     
 //     public void updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
@@ -303,6 +324,10 @@ public class OrderService {
                 .collect(Collectors.toList());
 
         Long tabId = order.getTab() != null ? order.getTab().getId() : null;
-        return new OrderResponse(order.getId(), tabId, items, order.getCreatedAt());
+        TabEntity tab = order.getTab();
+        String tableCode = tab != null && tab.getTable() != null ? tab.getTable().getCode() : null;
+        return new OrderResponse(order.getId(), tabId, items, order.getCreatedAt(),
+                order.getDelivered(), order.getDeliveredAt(), tableCode,
+                tab != null ? tab.getClosed() : null, order.getStatus());
     }
 }
