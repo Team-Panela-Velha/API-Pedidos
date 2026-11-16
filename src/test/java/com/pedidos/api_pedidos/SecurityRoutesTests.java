@@ -16,7 +16,7 @@ import com.pedidos.api_pedidos.security.JwtUtil;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 
 import java.util.UUID;
