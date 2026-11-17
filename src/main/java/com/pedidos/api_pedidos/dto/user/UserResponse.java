@@ -48,4 +48,8 @@ public class UserResponse {
     public Long getUpdatedBy() { return updatedBy; }
     public Instant getDeletedAt() { return deletedAt; }
     public Long getDeletedBy() { return deletedBy; }
+
+    private boolean root;
+    public boolean isRoot() { return root; }
+    public void setRoot(boolean root) { this.root = root; }
 }

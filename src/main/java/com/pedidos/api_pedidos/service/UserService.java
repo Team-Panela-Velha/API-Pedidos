@@ -54,6 +54,9 @@ public class UserService {
 
         UserRole role = firstUser ? UserRole.ADMIN : request.getRole() == null
                 ? UserRole.WAITER : UserRole.valueOf(request.getRole().toUpperCase());
+        if (!firstUser && isAdminLevel(role) && !callerIsRoot()) {
+            throw new AccessDeniedException("Somente o administrador global pode criar administradores");
+        }
 
         UserEntity entity = new UserEntity(
                 request.getName(),
@@ -103,22 +106,40 @@ public class UserService {
 
     public UserResponse update(Long id, UserRequest request) {
         UserEntity entity = findOrThrow(id);
-        entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
-        if (request.getActive() != null) entity.setActive(request.getActive());
-
+        UserRole newRole = null;
         if (request.getRole() != null) {
             try {
-                entity.setRole(UserRole.valueOf(request.getRole().toUpperCase()));
+                newRole = UserRole.valueOf(request.getRole().toUpperCase());
             } catch (IllegalArgumentException ignored) {
             }
         }
+        if (isRoot(entity)) {
+            if ((newRole != null && newRole != UserRole.ADMIN) || Boolean.FALSE.equals(request.getActive())) {
+                throw new AccessDeniedException("O administrador global não pode ser rebaixado nem desativado");
+            }
+            if (!callerIsRoot()) {
+                throw new AccessDeniedException("Somente o administrador global pode alterar a própria conta");
+            }
+        } else if ((isAdminLevel(entity.getRole()) || isAdminLevel(newRole)) && !callerIsRoot()) {
+            throw new AccessDeniedException("Somente o administrador global pode gerenciar administradores");
+        }
+
+        entity.setName(request.getName());
+        entity.setEmail(request.getEmail());
+        if (request.getActive() != null) entity.setActive(request.getActive());
+        if (newRole != null) entity.setRole(newRole);
 
         return toResponse(repository.save(entity));
     }
 
     public void delete(Long id) {
         UserEntity entity = findOrThrow(id);
+        if (isRoot(entity)) {
+            throw new AccessDeniedException("O administrador global não pode ser excluído");
+        }
+        if (isAdminLevel(entity.getRole()) && !callerIsRoot()) {
+            throw new AccessDeniedException("Somente o administrador global pode excluir administradores");
+        }
         entity.markDeleted(auditService.currentUserId());
         repository.save(entity);
     }
@@ -129,8 +150,27 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado: " + id));
     }
 
+    // Global admin ("root") = oldest active ADMIN. It cannot be deleted, demoted or deactivated,
+    // so it never changes and needs no extra column.
+    private Long rootId() {
+        return repository.findFirstByRoleAndDeletedAtIsNullOrderByIdAsc(UserRole.ADMIN)
+                .map(UserEntity::getId).orElse(null);
+    }
+
+    private boolean isRoot(UserEntity entity) {
+        return entity.getId() != null && entity.getId().equals(rootId());
+    }
+
+    private boolean callerIsRoot() {
+        return auditService.currentUserId().equals(rootId());
+    }
+
+    private static boolean isAdminLevel(UserRole role) {
+        return role == UserRole.ADMIN || role == UserRole.MANAGER;
+    }
+
     private UserResponse toResponse(UserEntity entity) {
-        return new UserResponse(
+        UserResponse response = new UserResponse(
                 entity.getId(),
                 entity.getName(),
                 entity.getEmail(),
@@ -138,5 +178,7 @@ public class UserService {
                 entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
                 entity.getDeletedAt(), entity.getDeletedBy()
         );
+        response.setRoot(isRoot(entity));
+        return response;
     }
 }

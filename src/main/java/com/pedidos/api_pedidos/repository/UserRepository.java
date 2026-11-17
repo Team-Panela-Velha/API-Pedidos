@@ -1,6 +1,7 @@
 package com.pedidos.api_pedidos.repository;
 
 import com.pedidos.api_pedidos.domain.entity.UserEntity;
+import com.pedidos.api_pedidos.domain.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -12,4 +13,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByEmailAndDeletedAtIsNull(String email);
     long countByDeletedAtIsNull();
     boolean existsByEmail(String email);
+    Optional<UserEntity> findFirstByRoleAndDeletedAtIsNullOrderByIdAsc(UserRole role);
 }
