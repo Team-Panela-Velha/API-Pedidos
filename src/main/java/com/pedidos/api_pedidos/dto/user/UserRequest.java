@@ -2,6 +2,7 @@ package com.pedidos.api_pedidos.dto.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class UserRequest {
 
@@ -27,4 +28,10 @@ public class UserRequest {
     public void setRole(String role) { this.role = role; }
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
+
+    // optional: only sent when the password should change
+    @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+    private String password;
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

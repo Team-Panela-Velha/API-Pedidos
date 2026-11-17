@@ -124,10 +124,16 @@ public class UserService {
             throw new AccessDeniedException("Somente o administrador global pode gerenciar administradores");
         }
 
+        if (!request.getEmail().equalsIgnoreCase(entity.getEmail()) && repository.existsByEmail(request.getEmail())) {
+            throw new ConflictException("E-mail já cadastrado: " + request.getEmail());
+        }
         entity.setName(request.getName());
         entity.setEmail(request.getEmail());
         if (request.getActive() != null) entity.setActive(request.getActive());
         if (newRole != null) entity.setRole(newRole);
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            entity.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
 
         return toResponse(repository.save(entity));
     }

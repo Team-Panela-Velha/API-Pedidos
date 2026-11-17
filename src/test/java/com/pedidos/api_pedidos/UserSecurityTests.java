@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.pedidos.api_pedidos.dto.user.UserRequest;
+import com.pedidos.api_pedidos.exception.ConflictException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -145,6 +146,47 @@ class UserSecurityTests {
         assertThrows(AccessDeniedException.class, () -> service.update(4L, promote));
         service.delete(4L);
         verify(users).save(argThat(u -> u.getId() == 4L && u.getDeletedAt() != null));
+    }
+
+    @Test
+    void adminEditsStaffNameEmailAndPassword() {
+        loggedAs(2);
+        user(4, UserRole.WAITER);
+        when(passwords.encode("nova123")).thenReturn("hash-novo");
+        UserRequest edit = new UserRequest();
+        edit.setName("Garcom Novo");
+        edit.setEmail("novo4@example.com");
+        edit.setPassword("nova123");
+        service.update(4L, edit);
+        verify(users).save(argThat(u -> u.getName().equals("Garcom Novo")
+                && u.getEmail().equals("novo4@example.com") && u.getPasswordHash().equals("hash-novo")));
+    }
+
+    @Test
+    void blankPasswordKeepsOldOneAndDuplicateEmailIsRejected() {
+        loggedAs(2);
+        user(4, UserRole.WAITER);
+        UserRequest edit = new UserRequest();
+        edit.setName("U4");
+        edit.setEmail("u4@example.com");
+        edit.setPassword("");
+        service.update(4L, edit);
+        verify(users).save(argThat(u -> u.getPasswordHash().equals("hashed")));
+
+        edit.setEmail("taken@example.com");
+        when(users.existsByEmail("taken@example.com")).thenReturn(true);
+        assertThrows(ConflictException.class, () -> service.update(4L, edit));
+    }
+
+    @Test
+    void adminCannotChangeRootPassword() {
+        loggedAs(2);
+        UserRequest edit = new UserRequest();
+        edit.setName("Root");
+        edit.setEmail("u1@example.com");
+        edit.setPassword("hackeada");
+        assertThrows(AccessDeniedException.class, () -> service.update(1L, edit));
+        verify(users, never()).save(any());
     }
 
     @Test
