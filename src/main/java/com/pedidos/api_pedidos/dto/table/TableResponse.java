@@ -6,6 +6,7 @@ public class TableResponse {
 
     private Long id;
     private String code;
+    private Integer number;
     private Instant createdAt;
     private Long createdBy;
     private Instant updatedAt;
@@ -13,10 +14,11 @@ public class TableResponse {
     private Instant deletedAt;
     private Long deletedBy;
 
-    public TableResponse(Long id, String code, Instant createdAt, Long createdBy,
+    public TableResponse(Long id, String code, Integer number, Instant createdAt, Long createdBy,
                          Instant updatedAt, Long updatedBy, Instant deletedAt, Long deletedBy) {
         this.id = id;
         this.code = code;
+        this.number = number;
         this.createdAt = createdAt;
         this.createdBy = createdBy;
         this.updatedAt = updatedAt;
@@ -32,6 +34,8 @@ public class TableResponse {
     public String getCode() {
         return code;
     }
+
+    public Integer getNumber() { return number; }
 
     public Instant getCreatedAt() { return createdAt; }
     public Long getCreatedBy() { return createdBy; }

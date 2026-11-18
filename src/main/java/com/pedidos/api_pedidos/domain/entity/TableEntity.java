@@ -20,6 +20,10 @@ public class TableEntity {
     @Column(nullable = false, unique = true)
     private String code;
 
+    // Numero visivel da mesa ("Mesa 3"). Unico entre mesas ativas, validado no TableService.
+    @Column(name = "number")
+    private Integer number;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -60,6 +64,9 @@ public class TableEntity {
     public void setId(Long id) {
         this.id = id;
     }
+
+    public Integer getNumber() { return number; }
+    public void setNumber(Integer number) { this.number = number; }
 
     public void setCode(String code) {
         this.code = code;

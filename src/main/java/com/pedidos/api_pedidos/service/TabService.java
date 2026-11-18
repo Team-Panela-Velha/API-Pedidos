@@ -178,7 +178,9 @@ public class TabService {
     private TabResponse toResponse(TabEntity entity) {
         Long tableId = entity.getTable() != null ? entity.getTable().getId() : null;
         String tableCode = entity.getTable() != null ? entity.getTable().getCode() : null;
-        return new TabResponse(entity.getId(), entity.getTotalValue(), entity.getClosed(), tableId, tableCode,
+        TabResponse response = new TabResponse(entity.getId(), entity.getTotalValue(), entity.getClosed(), tableId, tableCode,
                 entity.getOpenedAt(), entity.getCreatedAt());
+        response.setTableNumber(entity.getTable() != null ? entity.getTable().getNumber() : null);
+        return response;
     }
 }

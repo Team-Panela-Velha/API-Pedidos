@@ -10,6 +10,7 @@ public class TabResponse {
     private Boolean closed;
     private Long tableId;
     private String tableCode;
+    private Integer tableNumber;
     private Instant openedAt;
     private Instant createdAt;
 
@@ -33,6 +34,8 @@ public class TabResponse {
     public Boolean getClosed() { return closed; }
     public Long getTableId() { return tableId; }
     public String getTableCode() { return tableCode; }
+    public Integer getTableNumber() { return tableNumber; }
+    public void setTableNumber(Integer tableNumber) { this.tableNumber = tableNumber; }
     public Instant getOpenedAt() { return openedAt; }
     public Instant getCreatedAt() { return createdAt; }
 }

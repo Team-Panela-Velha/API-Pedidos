@@ -8,6 +8,7 @@ import com.pedidos.api_pedidos.dto.table.TableRequest;
 import com.pedidos.api_pedidos.dto.table.TableResponse;
 import com.pedidos.api_pedidos.exception.ConflictException;
 import com.pedidos.api_pedidos.exception.ResourceNotFoundException;
+import com.pedidos.api_pedidos.exception.UnprocessableException;
 import com.pedidos.api_pedidos.repository.TableRepository;
 import com.pedidos.api_pedidos.repository.TabRepository;
 
@@ -33,24 +34,59 @@ public class TableService {
     }
 
     /**
-     * Cria a mesa gerando um `code` único aleatório. O código do body é ignorado.
+     * Cria a mesa gerando um `code` único aleatório (o código do body é ignorado).
+     * O `number` enviado é mantido; sem ele, a mesa recebe o próximo número depois do maior em uso.
      */
     public TableResponse create(TableRequest request) {
+        Integer number = request != null ? request.getNumber() : null;
+        if (number == null) {
+            number = repository.maxActiveNumber() + 1;
+        } else {
+            validateNumber(number);
+            if (repository.existsByNumberAndDeletedAtIsNull(number)) {
+                throw new ConflictException("Já existe uma mesa com o número " + number);
+            }
+        }
         TableEntity entity = new TableEntity(generateUniqueCode());
+        entity.setNumber(number);
         entity = repository.save(entity);
 
         return toResponse(entity);
     }
 
     /**
-     * Atualiza a mesa. O `code` não pode ser alterado diretamente (use generate-codes);
-     * como `code` é o único campo, esta operação apenas valida a existência da mesa.
+     * Atualiza o número da mesa. O `code` não pode ser alterado diretamente (use generate-codes).
+     * Sem `number` no body, nada muda.
      */
     public TableResponse update(Long id, TableRequest request) {
         TableEntity entity = repository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Mesa não encontrada: " + id));
 
+        Integer number = request != null ? request.getNumber() : null;
+        if (number != null && !number.equals(entity.getNumber())) {
+            validateNumber(number);
+            if (repository.existsByNumberAndDeletedAtIsNullAndIdNot(number, id)) {
+                throw new ConflictException("Já existe uma mesa com o número " + number);
+            }
+            entity.setNumber(number);
+            entity = repository.save(entity);
+        }
         return toResponse(entity);
+    }
+
+    /** Mesas antigas (sem número) recebem os próximos números livres, na ordem do id. */
+    public void assignMissingNumbers() {
+        int next = repository.maxActiveNumber();
+        for (TableEntity entity : repository.findAllByDeletedAtIsNullAndNumberIsNullOrderByIdAsc()) {
+            entity.setNumber(++next);
+            repository.save(entity);
+        }
+    }
+
+    private static void validateNumber(Integer number) {
+        if (number < 1) {
+            throw new UnprocessableException("O número da mesa deve ser maior que zero");
+        }
     }
 
     public List<TableResponse> getAll() {
@@ -125,7 +161,7 @@ public class TableService {
     }
 
     private TableResponse toResponse(TableEntity entity) {
-        return new TableResponse(entity.getId(), entity.getCode(),
+        return new TableResponse(entity.getId(), entity.getCode(), entity.getNumber(),
                 entity.getCreatedAt(), entity.getCreatedBy(), entity.getUpdatedAt(), entity.getUpdatedBy(),
                 entity.getDeletedAt(), entity.getDeletedBy());
     }

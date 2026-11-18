@@ -15,6 +15,7 @@ public class OrderResponse {
     private Boolean delivered;
     private Instant deliveredAt;
     private String tableCode;
+    private Integer tableNumber;
     private Boolean tabClosed;
     private OrderStatus status;
 
@@ -47,6 +48,8 @@ public class OrderResponse {
     public Boolean getDelivered() { return delivered; }
     public Instant getDeliveredAt() { return deliveredAt; }
     public String getTableCode() { return tableCode; }
+    public Integer getTableNumber() { return tableNumber; }
+    public void setTableNumber(Integer tableNumber) { this.tableNumber = tableNumber; }
     public Boolean getTabClosed() { return tabClosed; }
     public OrderStatus getStatus() { return status; }
 }

@@ -326,8 +326,10 @@ public class OrderService {
         Long tabId = order.getTab() != null ? order.getTab().getId() : null;
         TabEntity tab = order.getTab();
         String tableCode = tab != null && tab.getTable() != null ? tab.getTable().getCode() : null;
-        return new OrderResponse(order.getId(), tabId, items, order.getCreatedAt(),
+        OrderResponse response = new OrderResponse(order.getId(), tabId, items, order.getCreatedAt(),
                 order.getDelivered(), order.getDeliveredAt(), tableCode,
                 tab != null ? tab.getClosed() : null, order.getStatus());
+        response.setTableNumber(tab != null && tab.getTable() != null ? tab.getTable().getNumber() : null);
+        return response;
     }
 }
