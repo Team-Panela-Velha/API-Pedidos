@@ -100,6 +100,17 @@ public class FieldController {
         return productService.search(keyword, categoryId, available);
     }
 
+    @GetMapping("/products/best-sellers")
+    public List<ProductResponse> getBestSellers(
+            @RequestParam(value = "limit", defaultValue = "5") int limit) {
+        return productService.getBestSellers(limit);
+    }
+
+    @GetMapping("/products/best-sellers/by-category")
+    public List<ProductResponse> getBestSellerPerCategory() {
+        return productService.getBestSellerPerCategory();
+    }
+
     @GetMapping("/products/{id}")
     public ProductResponse getProductById(@PathVariable Long id) {
         return productService.getById(id);

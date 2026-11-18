@@ -3,6 +3,7 @@ package com.pedidos.api_pedidos.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +35,35 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     List<ProductEntity> search(@Param("keyword") String keyword,
                                @Param("categoryId") Long categoryId,
                                @Param("available") Boolean available);
+
+    // Mais vendidos de todo o histórico: soma das quantidades, sem itens nem pedidos cancelados
+    @Query("""
+        SELECT p FROM OrderItemEntity oi
+        JOIN oi.product p
+        JOIN oi.order o
+        WHERE p.deletedAt IS NULL
+          AND p.available = true
+          AND o.status <> com.pedidos.api_pedidos.domain.enums.OrderStatus.CANCELLED
+          AND oi.status <> com.pedidos.api_pedidos.domain.enums.OrderStatus.CANCELLED
+        GROUP BY p
+        ORDER BY SUM(oi.quantity) DESC, p.name ASC
+        """)
+    List<ProductEntity> findBestSellers(Pageable pageable);
+
+    // Um produto disponível por categoria ativa: o mais vendido; sem vendas, o primeiro pelo nome
+    @Query(nativeQuery = true, value = """
+        SELECT DISTINCT ON (c.name, c.id) p.*
+        FROM product p
+        JOIN category c ON c.id = p.category_id AND c.deleted_at IS NULL
+        LEFT JOIN (
+            SELECT oi.product_id, SUM(oi.quantity) AS sold
+            FROM order_item oi
+            JOIN orders o ON o.id = oi.order_id
+            WHERE o.status <> 'CANCELLED' AND oi.status <> 'CANCELLED'
+            GROUP BY oi.product_id
+        ) s ON s.product_id = p.id
+        WHERE p.deleted_at IS NULL AND p.available = true
+        ORDER BY c.name, c.id, COALESCE(s.sold, 0) DESC, p.name
+        """)
+    List<ProductEntity> findBestSellerPerCategory();
 }

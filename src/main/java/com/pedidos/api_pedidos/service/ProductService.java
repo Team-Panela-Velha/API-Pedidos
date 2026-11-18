@@ -3,6 +3,7 @@ package com.pedidos.api_pedidos.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -120,6 +121,22 @@ public class ProductService {
     public List<ProductResponse> search(String keyword, Long categoryId, Boolean available) {
         String trimmedKeyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         return repository.search(trimmedKeyword, categoryId, available)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /** Produtos disponíveis mais vendidos (quantidade total), do maior para o menor. limit vai de 1 a 20. */
+    public List<ProductResponse> getBestSellers(int limit) {
+        return repository.findBestSellers(PageRequest.of(0, Math.clamp(limit, 1, 20)))
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /** O produto disponível mais vendido de cada categoria, em ordem de nome da categoria. */
+    public List<ProductResponse> getBestSellerPerCategory() {
+        return repository.findBestSellerPerCategory()
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
